@@ -1,37 +1,36 @@
 {
-  "name": "commonmark-react",
+  "name": "commonmark-react-renderer",
   "description": "React renderer for CommonMark (rationalized Markdown)",
   "version": "1.0.0",
   "keywords": [
-    "react-component"
+    "react-component",
+    "commonmark",
+    "markdown",
+    "renderer",
+    "react"
   ],
-  "main": "src/commonmark-react.js",
+  "main": "src/commonmark-react-renderer.js",
   "scripts": {
-    "lint": "gulp lint",
-    "prepublish": "npm prune && gulp test",
-    "test": "gulp test"
+    "coverage": "istanbul cover node_modules/.bin/_mocha -- --reporter spec",
+    "pretest": "npm run lint",
+    "lint": "eslint .",
+    "prepublish": "npm prune && npm test",
+    "test": "mocha --reporter spec"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:rexxars/commonmark-react.git"
+    "url": "git@github.com:rexxars/commonmark-react-renderer.git"
   },
-  "author": "Espen Hovlandsdal <rexxars@gmail.com>",
+  "author": "Espen Hovlandsdal <espen@hovlandsdal.com>",
   "license": "MIT",
   "devDependencies": {
-    "babel": "^5.4.3",
     "chai": "^2.3.0",
     "eslint": "^0.21.1",
     "eslint-config-vaffel": "^1.0.0",
     "eslint-plugin-react": "^2.3.0",
-    "gulp": "^3.8.11",
-    "gulp-eslint": "^0.12.0",
-    "gulp-istanbul": "^0.9.0",
-    "gulp-mocha": "^2.0.1",
     "istanbul": "^0.3.14",
-    "istanbul-react": "^1.0.1",
-    "jsdom": "^5.4.1",
     "mocha": "^2.2.5",
-    "mocha-jsdom": "^0.3.0"
+    "commonmark": "^0.19.0"
   },
   "dependencies": {
     "react": "^0.13.3"
