@@ -1,9 +1,8 @@
 {
   "name": "commonmark-react-renderer",
   "description": "React renderer for CommonMark (rationalized Markdown)",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
-    "react-component",
     "commonmark",
     "markdown",
     "renderer",
