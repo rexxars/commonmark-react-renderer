@@ -182,7 +182,7 @@ function ReactRenderer(options) {
     var opts = options || {};
     return {
         sourcePos: opts.sourcePos,
-        softBreak: opts.softbreak || '\n',
+        softBreak: opts.softBreak || '\n',
         escapeHtml: !!opts.escapeHtml,
         skipHtml: !!opts.skipHtml,
         render: renderNodes

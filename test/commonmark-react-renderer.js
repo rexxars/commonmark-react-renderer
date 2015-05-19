@@ -23,7 +23,7 @@ describe('react-markdown', function() {
     it('should handle <br> as softbreak', function() {
         var input = 'React is awesome\nAnd so is markdown\n\nCombining = epic';
         var expected = '<p>React is awesome<br>And so is markdown</p><p>Combining = epic</p>';
-        expect(parse(input, { softbreak: 'br' })).to.equal(expected);
+        expect(parse(input, { softBreak: 'br' })).to.equal(expected);
     });
 
     it('should handle emphasis', function() {
