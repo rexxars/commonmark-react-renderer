@@ -6,7 +6,6 @@ node_js:
 script:
   - npm run test-travis
 after_script:
-  - npm install coveralls@2.11.x && cat coverage/lcov.info | coveralls
   - npm install codeclimate-test-reporter && cat coverage/lcov.info | codeclimate
 env:
   global:
