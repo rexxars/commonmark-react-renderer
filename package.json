@@ -11,6 +11,7 @@
   ],
   "main": "src/commonmark-react-renderer.js",
   "scripts": {
+    "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- --reporter spec",
     "coverage": "istanbul cover node_modules/.bin/_mocha -- --reporter spec",
     "pretest": "npm run lint",
     "lint": "eslint .",

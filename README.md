@@ -1,5 +1,7 @@
 # commonmark-react-renderer
 
+[![npm version](http://img.shields.io/npm/v/commonmark-react-renderer.svg?style=flat-square)](http://browsenpm.org/package/commonmark-react-renderer)[![Build Status](http://img.shields.io/travis/rexxars/commonmark-react-renderer/master.svg?style=flat-square)](https://travis-ci.org/rexxars/commonmark-react-renderer)[![Coverage Status](http://img.shields.io/codeclimate/coverage/github/rexxars/commonmark-react-renderer.svg?style=flat-square)](https://codeclimate.com/github/rexxars/commonmark-react-renderer)[![Code Climate](http://img.shields.io/codeclimate/github/rexxars/commonmark-react-renderer.svg?style=flat-square)](https://codeclimate.com/github/rexxars/commonmark-react-renderer/)
+
 Renderer for CommonMark which returns an array of React elements, ready to be used in a React component. See [react-markdown](https://github.com/rexxars/react-markdown/) for such a component.
 
 ## Installing
