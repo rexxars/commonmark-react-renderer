@@ -1,6 +1,7 @@
 'use strict';
 
 var React = require('react'),
+    renderHtml = require('react-dom/server'),
     commonmark = require('commonmark'),
     expect = require('chai').expect,
     ReactRenderer = require('../');
@@ -20,9 +21,9 @@ describe('react-markdown', function() {
         expect(parse(input)).to.equal(expected);
     });
 
-    it('should handle <br> as softbreak', function() {
+    it('should handle <br/> as softbreak', function() {
         var input = 'React is awesome\nAnd so is markdown\n\nCombining = epic';
-        var expected = '<p>React is awesome<br>And so is markdown</p><p>Combining = epic</p>';
+        var expected = '<p>React is awesome<br/>And so is markdown</p><p>Combining = epic</p>';
         expect(parse(input, { softBreak: 'br' })).to.equal(expected);
     });
 
@@ -52,13 +53,13 @@ describe('react-markdown', function() {
 
     it('should handle images without title tags', function() {
         var input = 'This is ![an image](/ninja.png).';
-        var expected = '<p>This is <img src="/ninja.png" alt="an image">.</p>';
+        var expected = '<p>This is <img src="/ninja.png" alt="an image"/>.</p>';
         expect(parse(input)).to.equal(expected);
     });
 
     it('should handle images without title tags', function() {
         var input = 'This is ![an image](/ninja.png "foo bar").';
-        var expected = '<p>This is <img src="/ninja.png" title="foo bar" alt="an image">.</p>';
+        var expected = '<p>This is <img src="/ninja.png" title="foo bar" alt="an image"/>.</p>';
         expect(parse(input)).to.equal(expected);
     });
 
@@ -78,14 +79,14 @@ describe('react-markdown', function() {
 
     it('should handle code tags without any specifications', function() {
         var input = '```\nvar foo = require(\'bar\');\nfoo();\n```';
-        var expected = '<pre>\n<code>var foo = require(&#x27;bar&#x27;);\nfoo();\n</code></pre>';
+        var expected = '<pre><code>var foo = require(&#x27;bar&#x27;);\nfoo();\n</code></pre>';
         expect(parse(input)).to.equal(expected);
     });
 
     it('should handle code tags with language specification', function() {
         var input = '```js\nvar foo = require(\'bar\');\nfoo();\n```';
         var expected = [
-            '<pre>\n<code class="language-js">',
+            '<pre><code class="language-js">',
             'var foo = require(&#x27;bar&#x27;);\n',
             'foo();\n</code></pre>'
         ].join('');
@@ -100,7 +101,7 @@ describe('react-markdown', function() {
         ].join('    ');
 
         var expected = [
-            '<pre>\n<code>&lt;footer class=&quot;footer&quot;&gt;\n    ',
+            '<pre><code>&lt;footer class=&quot;footer&quot;&gt;\n    ',
             '&amp;copy; 2014 Foo Bar\n&lt;/footer&gt;\n</code></pre>'
         ].join('');
 
@@ -216,7 +217,7 @@ describe('react-markdown', function() {
 
     it('should handle horizontal rules', function() {
         var input = 'Foo\n\n------------\n\nBar';
-        var expected = '<p>Foo</p><hr><p>Bar</p>';
+        var expected = '<p>Foo</p><hr/><p>Bar</p>';
         expect(parse(input)).to.equal(expected);
     });
 
@@ -230,7 +231,7 @@ describe('react-markdown', function() {
         var input = 'Foo\n\n------------\n\nBar';
         var expected = [
             '<p data-sourcepos="1:1-1:3">Foo</p>',
-            '<hr data-sourcepos="3:1-3:12">',
+            '<hr data-sourcepos="3:1-3:12"/>',
             '<p data-sourcepos="5:1-5:3">Bar</p>'
         ].join('');
 
@@ -266,7 +267,7 @@ function parse(markdown, opts) {
     var ast = parser.parse(markdown);
     var result = getRenderer(opts).render(ast);
 
-    var html = React.renderToStaticMarkup(
+    var html = renderHtml.renderToStaticMarkup(
         React.createElement.apply(React, ['div', null].concat(result))
     );
 
