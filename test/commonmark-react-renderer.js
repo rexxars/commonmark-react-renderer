@@ -27,6 +27,12 @@ describe('react-markdown', function() {
         expect(parse(input, { softBreak: 'br' })).to.equal(expected);
     });
 
+    it('should handle multi-space+break as hardbreak', function() {
+        var input = 'React is awesome  \nAnd so is markdown';
+        var expected = '<p>React is awesome<br/>And so is markdown</p>';
+        expect(parse(input)).to.equal(expected);
+    });
+
     it('should handle emphasis', function() {
         var input = 'React is _totally_ *awesome*';
         var expected = '<p>React is <em>totally</em> <em>awesome</em></p>';

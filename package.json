@@ -13,7 +13,7 @@
     "coverage": "istanbul cover node_modules/.bin/_mocha -- --reporter spec",
     "lint": "eslint .",
     "prepublish": "npm prune && npm test",
-    "pretest": "npm run lint",
+    "posttest": "npm run lint",
     "test": "mocha --reporter spec",
     "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- --reporter spec"
   },
