@@ -116,6 +116,9 @@ function renderNodes(block) {
             case 'Softbreak':
                 addChild(node, softBreak);
                 break;
+            case 'Hardbreak':
+                addChild(node, React.createElement('br'));
+                break;
             case 'Strong':
                 tag(node, 'strong', attrs);
                 break;
