@@ -186,8 +186,8 @@ function ReactRenderer(options) {
     return {
         sourcePos: opts.sourcePos,
         softBreak: opts.softBreak || '\n',
-        escapeHtml: !!opts.escapeHtml,
-        skipHtml: !!opts.skipHtml,
+        escapeHtml: Boolean(opts.escapeHtml),
+        skipHtml: Boolean(opts.skipHtml),
         render: renderNodes
     };
 }
