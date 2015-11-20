@@ -38,6 +38,8 @@ Pass an object of options to the renderer constructor to configure it. Available
 * `escapeHtml` - *boolean* Setting to `true` will escape HTML blocks, rendering plain text instead of inserting the blocks as raw HTML (default: `false`).
 * `skipHtml` - *boolean* Setting to `true` will skip inlined and blocks of HTML (default: `false`).
 * `softBreak` - *string* Setting to `br` will create `<br>` tags instead of newlines (default: `\n`).
+* `allowedTypes` - *array* Defines which types of nodes should be allowed (rendered). (default: all types).
+* `disallowedTypes` - *array* Defines which types of nodes should be disallowed (not rendered). (default: none).
 
 ## Testing
 
