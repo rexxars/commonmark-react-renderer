@@ -243,6 +243,49 @@ describe('react-markdown', function() {
 
         expect(parse(input, { sourcePos: true })).to.equal(expected);
     });
+
+    it('should skip nodes that are not defined as allowed', function() {
+        var input = '# Header\n\nParagraph\n## New header\n1. List item\n2. List item 2';
+        var expected = [
+            '<p>Paragraph</p>',
+            '<ol>',
+            '<li>List item</li>',
+            '<li>List item 2</li>',
+            '</ol>'
+        ].join('');
+
+        expect(parse(input, { allowedTypes: ['Text', 'Paragraph', 'List', 'Item'] })).to.equal(expected);
+    });
+
+    it('should skip nodes that are defined as disallowed', function() {
+        var input = '# Header\n\nParagraph\n## New header\n1. List item\n2. List item 2\n\nFoo';
+        var expected = [
+            '<h1>Header</h1>',
+            '<p>Paragraph</p>',
+            '<h2>New header</h2>',
+            '<p>Foo</p>'
+        ].join('');
+
+        expect(parse(input, { disallowedTypes: ['List'] })).to.equal(expected);
+    });
+
+    it('should throw if both allowed and disallowed types is specified', function() {
+        expect(function() {
+            parse('', { allowedTypes: ['foo'], disallowedTypes: ['bar'] });
+        }).to.throw(Error, /Only one of/i);
+    });
+
+    it('should throw if `allowedTypes` is not an array', function() {
+        expect(function() {
+            parse('', { allowedTypes: 'foo' });
+        }).to.throw(Error, /allowedTypes.*?array/i);
+    });
+
+    it('should throw if `disallowedTypes` is not an array', function() {
+        expect(function() {
+            parse('', { disallowedTypes: 'foo' });
+        }).to.throw(Error, /disallowedTypes.*?array/i);
+    });
 });
 
 function getRenderer(opts) {

@@ -2,6 +2,12 @@
 
 var React = require('react');
 
+var allTypes = [
+    'Html', 'HtmlBlock', 'Text', 'Paragraph', 'Header', 'Softbreak', 'Hardbreak',
+    'Link', 'Image', 'Emph', 'Code', 'CodeBlock', 'BlockQuote', 'List', 'Item',
+    'Strong', 'HorizontalRule', 'Document'
+];
+
 function tag(node, name, attrs, children) {
     node.react = {
         tag: name,
@@ -10,7 +16,7 @@ function tag(node, name, attrs, children) {
     };
 }
 
-function isGrandParentOfList(node) {
+function isGrandChildOfList(node) {
     var grandparent = node.parent.parent;
     return (
         grandparent &&
@@ -66,7 +72,7 @@ function renderNodes(block) {
             ].map(String).join('');
         }
 
-        if (node.type === 'Paragraph' && isGrandParentOfList(node)) {
+        if (node.type === 'Paragraph' && isGrandChildOfList(node)) {
             continue;
         }
 
@@ -76,7 +82,8 @@ function renderNodes(block) {
                 node.react.children = [];
             }
 
-            if (node !== doc) {
+            var nodeIsAllowed = this.allowedTypes.indexOf(node.type) !== -1;
+            if (node !== doc && nodeIsAllowed) {
                 addChild(node, createElement(
                     node.react.tag,
                     node.react.props,
@@ -183,11 +190,32 @@ function renderNodes(block) {
 
 function ReactRenderer(options) {
     var opts = options || {};
+
+    if (opts.allowedTypes && opts.disallowedTypes) {
+        throw new Error('Only one of `allowedTypes` and `disallowedTypes` should be defined');
+    }
+
+    if (opts.allowedTypes && !Array.isArray(opts.allowedTypes)) {
+        throw new Error('`allowedTypes` must be an array');
+    }
+
+    if (opts.disallowedTypes && !Array.isArray(opts.disallowedTypes)) {
+        throw new Error('`disallowedTypes` must be an array');
+    }
+
+    var allowedTypes = opts.allowedTypes || allTypes;
+    if (opts.disallowedTypes) {
+        allowedTypes = allowedTypes.filter(function(type) {
+            return opts.disallowedTypes.indexOf(type) === -1;
+        });
+    }
+
     return {
         sourcePos: opts.sourcePos,
         softBreak: opts.softBreak || '\n',
         escapeHtml: Boolean(opts.escapeHtml),
         skipHtml: Boolean(opts.skipHtml),
+        allowedTypes: allowedTypes,
         render: renderNodes
     };
 }
