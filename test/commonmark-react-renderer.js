@@ -286,6 +286,28 @@ describe('react-markdown', function() {
             parse('', { disallowedTypes: 'foo' });
         }).to.throw(Error, /disallowedTypes.*?array/i);
     });
+
+    it('should throw if `allowNode` is not a function', function() {
+        expect(function() {
+            parse('', { allowNode: 'foo' });
+        }).to.throw(Error, /allowNode.*?function/i);
+    });
+
+    it('should be able to use a custom function to determine if the node should be allowed', function() {
+        var input = '# Header\n\n[react-markdown](https://github.com/rexxars/react-markdown/) is a nice helper\n\n';
+        input += 'Also check out [my website](https://espen.codes/)';
+
+        var output = parse(input, {
+            allowNode: function(node) {
+                return node.type !== 'Link' || node.props.href.indexOf('https://github.com/') === 0;
+            }
+        });
+
+        expect(output).to.equal([
+            '<h1>Header</h1><p><a href="https://github.com/rexxars/react-markdown/">react-markdown</a>',
+            ' is a nice helper</p><p>Also check out </p>'
+        ].join(''));
+    });
 });
 
 function getRenderer(opts) {

@@ -46,6 +46,8 @@ function renderNodes(block) {
     var escapeHtml = this.escapeHtml;
     var skipHtml = this.skipHtml;
     var infoWords;
+
+    // Softbreaks are usually treated as newlines, but in HTML we might want explicit linebreaks
     var softBreak = (
         this.softBreak === 'br' ?
         React.createElement('br') :
@@ -59,11 +61,13 @@ function renderNodes(block) {
         node = e.node;
         attrs = {};
 
+        // If we have not assigned a document yet, assume the current node is just that
         if (!doc) {
             doc = node;
             node.react = { children: [] };
         }
 
+        // `sourcePos` is true if the user wants source information (line/column info from markdown source)
         if (sourcePos && node.sourcepos) {
             var pos = node.sourcepos;
             attrs['data-sourcepos'] = [
@@ -72,16 +76,29 @@ function renderNodes(block) {
             ].map(String).join('');
         }
 
+        // In HTML, we don't want paragraphs inside of list items
         if (node.type === 'Paragraph' && isGrandChildOfList(node)) {
             continue;
         }
 
         if (leaving) {
+            // Commonmark treats image description as children. We just want the text
             if (node.type === 'Image') {
                 node.react.props.alt = node.react.children[0];
                 node.react.children = [];
             }
 
+            // `allowNode` is validated to be a function if it exists
+            if (node !== doc && this.allowNode && !this.allowNode({
+                type: node.type,
+                tag: node.react.tag,
+                props: node.react.props,
+                children: node.react.children
+            })) {
+                continue;
+            }
+
+            // `allowedTypes` is an array containing the allowed types
             var nodeIsAllowed = this.allowedTypes.indexOf(node.type) !== -1;
             if (node !== doc && nodeIsAllowed) {
                 addChild(node, createElement(
@@ -203,6 +220,10 @@ function ReactRenderer(options) {
         throw new Error('`disallowedTypes` must be an array');
     }
 
+    if (opts.allowNode && typeof opts.allowNode !== 'function') {
+        throw new Error('`allowNode` must be a function');
+    }
+
     var allowedTypes = opts.allowedTypes || allTypes;
     if (opts.disallowedTypes) {
         allowedTypes = allowedTypes.filter(function(type) {
@@ -215,6 +236,7 @@ function ReactRenderer(options) {
         softBreak: opts.softBreak || '\n',
         escapeHtml: Boolean(opts.escapeHtml),
         skipHtml: Boolean(opts.skipHtml),
+        allowNode: opts.allowNode,
         allowedTypes: allowedTypes,
         render: renderNodes
     };
