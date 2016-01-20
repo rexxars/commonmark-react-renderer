@@ -25,7 +25,7 @@
   "license": "MIT",
   "devDependencies": {
     "chai": "^3.4.0",
-    "commonmark": "^0.19.0",
+    "commonmark": "^0.24.0",
     "eslint": "^1.7.3",
     "eslint-config-vaffel": "^3.0.0",
     "eslint-plugin-react": "^3.6.3",

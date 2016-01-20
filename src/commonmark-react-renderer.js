@@ -3,9 +3,9 @@
 var React = require('react');
 
 var allTypes = [
-    'Html', 'HtmlBlock', 'Text', 'Paragraph', 'Header', 'Softbreak', 'Hardbreak',
+    'HtmlInline', 'HtmlBlock', 'Text', 'Paragraph', 'Heading', 'Softbreak', 'Hardbreak',
     'Link', 'Image', 'Emph', 'Code', 'CodeBlock', 'BlockQuote', 'List', 'Item',
-    'Strong', 'HorizontalRule', 'Document'
+    'Strong', 'ThematicBreak', 'Document'
 ];
 
 function tag(node, name, attrs, children) {
@@ -113,7 +113,7 @@ function renderNodes(block) {
 
         // Entering a new node
         switch (node.type) {
-            case 'Html':
+            case 'HtmlInline':
             case 'HtmlBlock':
                 if (escapeHtml) {
                     addChild(node, node.literal);
@@ -123,7 +123,7 @@ function renderNodes(block) {
                     };
 
                     addChild(node, createElement(
-                        node.type === 'Html' ? 'span' : 'div',
+                        node.type === 'HtmlInline' ? 'span' : 'div',
                         attrs
                     ));
                 }
@@ -134,7 +134,7 @@ function renderNodes(block) {
             case 'Paragraph':
                 tag(node, 'p', attrs);
                 break;
-            case 'Header':
+            case 'Heading':
                 tag(node, 'h' + node.level, attrs);
                 break;
             case 'Softbreak':
@@ -192,7 +192,7 @@ function renderNodes(block) {
             case 'Item':
                 tag(node, 'li', attrs);
                 break;
-            case 'HorizontalRule':
+            case 'ThematicBreak':
                 addChild(node, createElement('hr', attrs));
                 break;
             case 'Document':
