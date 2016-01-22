@@ -269,6 +269,17 @@ describe('react-markdown', function() {
         expect(parse(input, { disallowedTypes: ['List'] })).to.equal(expected);
     });
 
+    it('should translate deprecated types specified as disallowed types to their respective new names', function() {
+        var input = 'Something\nOr other\n# Header\n\nParagraph\n## New header\n\nFoo';
+        var expected = [
+            '<p>Something\nOr other</p>',
+            '<p>Paragraph</p>',
+            '<p>Foo</p>'
+        ].join('');
+
+        expect(parse(input, { disallowedTypes: ['Header'] })).to.equal(expected);
+    });
+
     it('should throw if both allowed and disallowed types is specified', function() {
         expect(function() {
             parse('', { allowedTypes: ['foo'], disallowedTypes: ['bar'] });

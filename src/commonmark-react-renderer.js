@@ -8,6 +8,12 @@ var allTypes = [
     'Strong', 'ThematicBreak', 'Document'
 ];
 
+var deprecated = {
+    Html: 'HtmlInline',
+    Header: 'Heading',
+    HorizontalRule: 'ThematicBreak'
+};
+
 function tag(node, name, attrs, children) {
     node.react = {
         tag: name,
@@ -205,6 +211,14 @@ function renderNodes(block) {
     return doc.react.children;
 }
 
+function replaceDeprecatedType(type) {
+    if (deprecated[type]) {
+        return deprecated[type];
+    }
+
+    return type;
+}
+
 function ReactRenderer(options) {
     var opts = options || {};
 
@@ -224,10 +238,11 @@ function ReactRenderer(options) {
         throw new Error('`allowNode` must be a function');
     }
 
-    var allowedTypes = opts.allowedTypes || allTypes;
+    var allowedTypes = (opts.allowedTypes || allTypes).map(replaceDeprecatedType);
     if (opts.disallowedTypes) {
+        var disallowed = opts.disallowedTypes.map(replaceDeprecatedType);
         allowedTypes = allowedTypes.filter(function(type) {
-            return opts.disallowedTypes.indexOf(type) === -1;
+            return disallowed.indexOf(type) === -1;
         });
     }
 
