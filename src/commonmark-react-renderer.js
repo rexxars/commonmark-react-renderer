@@ -60,12 +60,16 @@ function renderNodes(block) {
         this.softBreak
     );
 
-    var e, node, entering, leaving, attrs, doc;
+    var e, node, entering, leaving, attrs, doc, key;
     while ((e = walker.next())) {
         entering = e.entering;
         leaving = !entering;
         node = e.node;
-        attrs = {};
+        key = !e.node.prev ? 0 : e.node.prev.reactKey + 1;
+        attrs = { key: key };
+
+        // Assigning a key to the node
+        node.reactKey = key;
 
         // If we have not assigned a document yet, assume the current node is just that
         if (!doc) {
