@@ -270,6 +270,17 @@ describe('react-markdown', function() {
         expect(parse(input, { disallowedTypes: ['List'] })).to.equal(expected);
     });
 
+    it('should unwrap child nodes from disallowed nodes, if unwrapDisallowed option is enabled', function() {
+        var input = 'Espen *initiated* this, but has had several **contributors**';
+        var expected = '<p>Espen initiated this, but has had several contributors</p>';
+        var expectedRaw = '<p>Espen <em>initiated</em> this, but has had several <strong>contributors</strong></p>';
+        var expectedSkip = '<p>Espen  this, but has had several </p>';
+
+        expect(parse(input, { disallowedTypes: ['Emph', 'Strong'], unwrapDisallowed: true })).to.equal(expected);
+        expect(parse(input, { disallowedTypes: ['Emph', 'Strong'] })).to.equal(expectedSkip);
+        expect(parse(input, {})).to.equal(expectedRaw);
+    });
+
     it('should translate deprecated types specified as disallowed types to their respective new names', function() {
         var input = 'Something\nOr other\n# Header\n\nParagraph\n## New header\n\nFoo';
         var expected = [
