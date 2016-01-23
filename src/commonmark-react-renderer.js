@@ -8,6 +8,15 @@ function element(tagName, props, children) {
     return child;
 }
 
+// NOTE: not completely safe, but should deter most cases
+function isPlainObject(target) {
+    return (
+        target &&
+        typeof target === 'object' &&
+        !Array.isArray(target)
+    );
+}
+
 // NOTE: using objects as sets for O(1) lookups
 function makeSet(array) {
     var set = {};
@@ -184,7 +193,7 @@ function renderNodes(block) {
         }
 
         // Getting the correct renderer
-        render = renderers[type];
+        render = this.renderers[type];
 
         if (type !== 'Document') {
             if (!render) {
@@ -266,6 +275,7 @@ function replaceDeprecatedType(type) {
 
 function ReactRenderer(options) {
     var opts = options || {};
+    var k;
 
     if (opts.allowedTypes && opts.disallowedTypes) {
         throw new Error('Only one of `allowedTypes` and `disallowedTypes` should be defined');
@@ -293,6 +303,20 @@ function ReactRenderer(options) {
 
     var allowedTypesSet = makeSet(allowedTypes);
 
+    if (opts.renderers && !isPlainObject(opts.renderers)) {
+        throw new Error('`renderers` must be a plain object');
+    }
+
+    var customRenderers = null;
+
+    if (opts.renderers) {
+        customRenderers = {};
+
+        for (k in renderers) {
+            customRenderers[k] = opts.renderers[k] || renderers[k];
+        }
+    }
+
     return {
         sourcePos: opts.sourcePos,
         softBreak: opts.softBreak || '\n',
@@ -301,6 +325,7 @@ function ReactRenderer(options) {
         allowNode: opts.allowNode,
         allowedTypes: allowedTypes,
         allowedTypesSet: allowedTypesSet,
+        renderers: customRenderers || renderers,
         render: renderNodes
     };
 }

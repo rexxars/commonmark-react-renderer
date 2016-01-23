@@ -298,6 +298,12 @@ describe('react-markdown', function() {
         }).to.throw(Error, /allowNode.*?function/i);
     });
 
+    it('should throw if `renderers` is not a plain object', function() {
+        expect(function() {
+            parse('', { renderers: [1, 2] });
+        }).to.throw(Error, /renderers.*?object/i);
+    });
+
     it('should be able to use a custom function to determine if the node should be allowed', function() {
         var input = '# Header\n\n[react-markdown](https://github.com/rexxars/react-markdown/) is a nice helper\n\n';
         input += 'Also check out [my website](https://espen.codes/)';
@@ -312,6 +318,30 @@ describe('react-markdown', function() {
             '<h1>Header</h1><p>',
             ' is a nice helper</p><p>Also check out </p>'
         ].join(''));
+    });
+
+    it('should be possible to override default renderers.', function() {
+        var customRenderers = {
+            Strong: function(node, props, children) {
+                return React.createElement('b', props, children);
+            },
+            Text: function() {
+                return 'Placeholder';
+            },
+            Paragraph: function(node, props, children) {
+                return React.createElement('section', props, children);
+            }
+        };
+
+        var input = 'This is some *important* text.';
+
+        var output = parse(input, {
+            renderers: customRenderers
+        });
+
+        expect(output).to.equal(
+            '<section>Placeholder<em>Placeholder</em>Placeholder</section>'
+        );
     });
 });
 
