@@ -2,11 +2,22 @@
 
 var React = require('react');
 
-var allTypes = [
-    'HtmlInline', 'HtmlBlock', 'Text', 'Paragraph', 'Heading', 'Softbreak', 'Hardbreak',
-    'Link', 'Image', 'Emph', 'Code', 'CodeBlock', 'BlockQuote', 'List', 'Item',
-    'Strong', 'ThematicBreak', 'Document'
-];
+function element(tagName, props, children) {
+    var args = [tagName, props].concat([].concat(children));
+    var child = React.createElement.apply(React, args);
+    return child;
+}
+
+// NOTE: using objects as sets for O(1) lookups
+function makeSet(array) {
+    var set = {};
+
+    array.forEach(function(item) {
+        set[item] = true;
+    });
+
+    return set;
+}
 
 var deprecated = {
     Html: 'HtmlInline',
@@ -14,12 +25,122 @@ var deprecated = {
     HorizontalRule: 'ThematicBreak'
 };
 
-function tag(node, name, attrs, children) {
+// Defining the renderers
+// Renderers are functions taking the following arguments:
+//  - node: the commonmark node
+//  - props: the set of props computed by the renderer
+//  - children: children to append
+//  - opts: miscellaneous options
+var renderers = {
+    HtmlInline: function(node, props, children, opts) {
+        if (opts.escapeHtml) {
+            return node.literal;
+        } else if (!opts.skipHtml) {
+            props.dangerouslySetInnerHTML = {
+                __html: node.literal
+            };
+
+            var tagName = node.type === 'HtmlInline' ? 'span' : 'div';
+
+            return element(tagName, props);
+        }
+
+        return null;
+    },
+    Text: function(node) {
+        return node.literal;
+    },
+    Paragraph: function(node, props, children) {
+        return element('p', props, children);
+    },
+    Heading: function(node, props, children) {
+        return element('h' + node.level, props, children);
+    },
+    Softbreak: function(node, props, children, opts) {
+        return (
+            opts.softBreak === 'br' ?
+            element('br') :
+            opts.softBreak
+        );
+    },
+    Hardbreak: function() {
+        return element('br');
+    },
+    Strong: function(node, props, children) {
+        return element('strong', props, children);
+    },
+    Link: function(node, props, children) {
+        props.href = node.destination;
+        if (node.title) {
+            props.title = node.title;
+        }
+
+        return element('a', props, children);
+    },
+    Image: function(node, props, children) {
+        props.src = node.destination;
+        if (node.title) {
+            props.title = node.title;
+        }
+
+        return element('img', props, children);
+    },
+    Emph: function(node, props, children) {
+        return element('em', props, children);
+    },
+    Code: function(node, props, children) {
+        return element('code', props, children);
+    },
+    CodeBlock: function(node, props, children) {
+        var infoWords = node.info ? node.info.split(/ +/) : [];
+        if (infoWords.length > 0 && infoWords[0].length > 0) {
+            props.className = 'language-' + infoWords[0];
+        }
+
+        var code = element('code', props, children);
+        return element('pre', null, code);
+    },
+    BlockQuote: function(node, props, children) {
+        return element('blockquote', props, children);
+    },
+    List: function(node, props, children) {
+        var start = node.listStart;
+        if (start !== null && start !== 1) {
+            props.start = start.toString();
+        }
+
+        var tagName = node.listType === 'Bullet' ? 'ul' : 'ol';
+        return element(tagName, props, children);
+    },
+    Item: function(node, props, children) {
+        return element('li', props, children);
+    },
+    ThematicBreak: function(node, props) {
+        return element('hr', props);
+    }
+};
+
+renderers.HtmlBlock = renderers.HtmlInline;
+
+var allTypes = Object.keys(renderers);
+
+var enteringTypes = [
+    'Paragraph', 'Heading', 'Strong', 'Link', 'Image',
+    'Emph', 'BlockQuote', 'List', 'Item'
+];
+
+var enteringTypesSet = makeSet(enteringTypes);
+
+function tag(node, type, attrs) {
     node.react = {
-        tag: name,
+        tag: type,
         props: attrs,
-        children: children || []
+        children: []
     };
+
+    if (type === 'Strong' || type === 'Emph') {
+        node.react.children.push(node.literal);
+    }
 }
 
 function isGrandChildOfList(node) {
@@ -40,32 +161,17 @@ function addChild(node, child) {
     parent.react.children.push(child);
 }
 
-function createElement(tagName, props, children) {
-    var args = [tagName, props].concat(children);
-    var child = React.createElement.apply(React, args);
-    return child;
-}
-
 function renderNodes(block) {
     var walker = block.walker();
     var sourcePos = this.sourcePos;
-    var escapeHtml = this.escapeHtml;
-    var skipHtml = this.skipHtml;
-    var infoWords;
 
-    // Softbreaks are usually treated as newlines, but in HTML we might want explicit linebreaks
-    var softBreak = (
-        this.softBreak === 'br' ?
-        React.createElement('br') :
-        this.softBreak
-    );
-
-    var e, node, entering, leaving, attrs, doc, key;
+    var e, node, entering, leaving, type, render, attrs, doc, key;
     while ((e = walker.next())) {
         entering = e.entering;
         leaving = !entering;
         node = e.node;
-        key = !e.node.prev ? 0 : e.node.prev.reactKey + 1;
+        type = deprecated[node.type] || node.type;
+        key = !node.prev ? 0 : node.prev.reactKey + 1;
         attrs = { key: key };
 
         // Assigning a key to the node
@@ -75,6 +181,20 @@ function renderNodes(block) {
         if (!doc) {
             doc = node;
             node.react = { children: [] };
+        }
+
+        // Getting the correct renderer
+        render = renderers[type];
+
+        if (type !== 'Document') {
+            if (!render) {
+                throw new Error('Unknown node type "' + type + '"');
+            }
+            if (typeof render !== 'function') {
+                throw new Error('Invalid renderer for type "' + type + '"');
+            }
+        } else {
+            continue;
         }
 
         // `sourcePos` is true if the user wants source information (line/column info from markdown source)
@@ -87,128 +207,49 @@ function renderNodes(block) {
         }
 
         // In HTML, we don't want paragraphs inside of list items
-        if (node.type === 'Paragraph' && isGrandChildOfList(node)) {
+        if (type === 'Paragraph' && isGrandChildOfList(node)) {
             continue;
         }
 
         if (leaving) {
             // Commonmark treats image description as children. We just want the text
-            if (node.type === 'Image') {
+            if (type === 'Image') {
                 node.react.props.alt = node.react.children[0];
                 node.react.children = [];
             }
 
             // `allowNode` is validated to be a function if it exists
             if (node !== doc && this.allowNode && !this.allowNode({
-                type: node.type,
-                tag: node.react.tag,
+                type: type,
                 props: node.react.props,
                 children: node.react.children
             })) {
                 continue;
             }
 
-            // `allowedTypes` is an array containing the allowed types
-            var nodeIsAllowed = this.allowedTypes.indexOf(node.type) !== -1;
+            // `allowedTypesSet` is a set containing the allowed types
+            var nodeIsAllowed = this.allowedTypesSet[type];
             if (node !== doc && nodeIsAllowed) {
-                addChild(node, createElement(
-                    node.react.tag,
+                addChild(node, render(
+                    node,
                     node.react.props,
-                    node.react.children
+                    node.react.children,
+                    this
                 ));
             }
 
             continue;
         }
 
-        // Entering a new node
-        switch (node.type) {
-            case 'HtmlInline':
-            case 'HtmlBlock':
-                if (escapeHtml) {
-                    addChild(node, node.literal);
-                } else if (!skipHtml) {
-                    attrs.dangerouslySetInnerHTML = {
-                        __html: node.literal
-                    };
-
-                    addChild(node, createElement(
-                        node.type === 'HtmlInline' ? 'span' : 'div',
-                        attrs
-                    ));
-                }
-                break;
-            case 'Text':
-                addChild(node, node.literal);
-                break;
-            case 'Paragraph':
-                tag(node, 'p', attrs);
-                break;
-            case 'Heading':
-                tag(node, 'h' + node.level, attrs);
-                break;
-            case 'Softbreak':
-                addChild(node, softBreak);
-                break;
-            case 'Hardbreak':
-                addChild(node, React.createElement('br'));
-                break;
-            case 'Strong':
-                tag(node, 'strong', attrs);
-                break;
-            case 'Link':
-                attrs.href = node.destination;
-                if (node.title) {
-                    attrs.title = node.title;
-                }
-                tag(node, 'a', attrs);
-                break;
-            case 'Image':
-                attrs.src = node.destination;
-                if (node.title) {
-                    attrs.title = node.title;
-                }
-                tag(node, 'img', attrs);
-                break;
-            case 'Emph':
-                tag(node, 'em', attrs);
-                break;
-            case 'Code':
-                addChild(node, createElement(
-                    'code',
-                    attrs,
-                    [node.literal]
-                ));
-                break;
-            case 'CodeBlock':
-                infoWords = node.info ? node.info.split(/ +/) : [];
-                if (infoWords.length > 0 && infoWords[0].length > 0) {
-                    attrs.className = 'language-' + infoWords[0];
-                }
-
-                var code = createElement('code', attrs, [node.literal]);
-                addChild(node, createElement('pre', {}, [code]));
-                break;
-            case 'BlockQuote':
-                tag(node, 'blockquote', attrs);
-                break;
-            case 'List':
-                var start = node.listStart;
-                if (start !== null && start !== 1) {
-                    attrs.start = start.toString();
-                }
-                tag(node, node.listType === 'Bullet' ? 'ul' : 'ol', attrs);
-                break;
-            case 'Item':
-                tag(node, 'li', attrs);
-                break;
-            case 'ThematicBreak':
-                addChild(node, createElement('hr', attrs));
-                break;
-            case 'Document':
-                break;
-            default:
-                throw new Error('Unknown node type "' + node.type + '"');
+        if (enteringTypesSet[type]) {
+            tag(node, type, attrs);
+        } else {
+            addChild(node, render(
+                node,
+                attrs,
+                [node.literal],
+                this
+            ));
         }
     }
 
@@ -250,6 +291,8 @@ function ReactRenderer(options) {
         });
     }
 
+    var allowedTypesSet = makeSet(allowedTypes);
+
     return {
         sourcePos: opts.sourcePos,
         softBreak: opts.softBreak || '\n',
@@ -257,6 +300,7 @@ function ReactRenderer(options) {
         skipHtml: Boolean(opts.skipHtml),
         allowNode: opts.allowNode,
         allowedTypes: allowedTypes,
+        allowedTypesSet: allowedTypesSet,
         render: renderNodes
     };
 }

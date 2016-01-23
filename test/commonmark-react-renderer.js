@@ -59,13 +59,7 @@ describe('react-markdown', function() {
 
     it('should handle images without title tags', function() {
         var input = 'This is ![an image](/ninja.png).';
-        var expected = '<p>This is <img src="/ninja.png" alt="an image"/>.</p>';
-        expect(parse(input)).to.equal(expected);
-    });
-
-    it('should handle images without title tags', function() {
-        var input = 'This is ![an image](/ninja.png "foo bar").';
-        var expected = '<p>This is <img src="/ninja.png" title="foo bar" alt="an image"/>.</p>';
+        var expected = '<p>This is <img alt="an image" src="/ninja.png"/>.</p>';
         expect(parse(input)).to.equal(expected);
     });
 
@@ -310,12 +304,12 @@ describe('react-markdown', function() {
 
         var output = parse(input, {
             allowNode: function(node) {
-                return node.type !== 'Link' || node.props.href.indexOf('https://github.com/') === 0;
+                return node.type !== 'Link';
             }
         });
 
         expect(output).to.equal([
-            '<h1>Header</h1><p><a href="https://github.com/rexxars/react-markdown/">react-markdown</a>',
+            '<h1>Header</h1><p>',
             ' is a nice helper</p><p>Also check out </p>'
         ].join(''));
     });
