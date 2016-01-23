@@ -2,6 +2,24 @@
 
 All notable changes will be documented in this file.
 
+## [2.2.2] - 2016-01-22
+
+### Added
+
+- Provide index-based keys to generated elements to silent warnings from React (Guillaume Plique)
+
+## [2.2.1] - 2016-01-22
+
+### Changed
+
+- Upgrade commonmark to latest version (Guillaume Plique)
+
+## [2.2.0] - 2015-12-11
+
+### Added
+
+- Allow passing `allowNode` - a function which determines if a given node should be allowed (Espen Hovlandsdal)
+
 ## [2.1.0] - 2015-11-20
 
 ### Added
