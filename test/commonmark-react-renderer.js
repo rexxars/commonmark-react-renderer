@@ -228,8 +228,9 @@ describe('react-markdown', function() {
     });
 
     it('should throw on unknown node type', function() {
+        var renderer = new ReactRenderer({ allowedTypes: ['FakeType'] });
         expect(function() {
-            reactRenderer.render({ walker: getFakeWalker });
+            renderer.render({ walker: getFakeWalker });
         }).to.throw(Error, /FakeType/);
     });
 
@@ -330,17 +331,24 @@ function getRenderer(opts) {
 }
 
 function getFakeWalker() {
-    var numRuns = 0;
+    var numRuns = -1;
     return {
         next: function() {
-            if (numRuns++) {
-                return null;
+            numRuns++;
+
+            if (numRuns === 0) {
+                return {
+                    entering: true,
+                    node: { type: 'document' }
+                };
+            } else if (numRuns === 1) {
+                return {
+                    entering: true,
+                    node: { type: 'FakeType' }
+                };
             }
 
-            return {
-                entering: true,
-                node: { type: 'FakeType' }
-            };
+            return null;
         }
     };
 }

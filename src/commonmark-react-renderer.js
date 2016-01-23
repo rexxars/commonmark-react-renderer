@@ -14,9 +14,11 @@ var deprecated = {
     HorizontalRule: 'ThematicBreak'
 };
 
+var literalValueTypes = ['HtmlInline', 'HtmlBlock', 'Text', 'Code', 'CodeBlock'];
+
 function tag(node, name, attrs, children) {
     node.react = {
-        tag: name,
+        component: name,
         props: attrs,
         children: children || []
     };
@@ -51,6 +53,7 @@ function renderNodes(block) {
     var sourcePos = this.sourcePos;
     var escapeHtml = this.escapeHtml;
     var skipHtml = this.skipHtml;
+    var unwrapDisallowed = this.unwrapDisallowed;
     var infoWords;
 
     // Softbreaks are usually treated as newlines, but in HTML we might want explicit linebreaks
@@ -75,6 +78,10 @@ function renderNodes(block) {
         if (!doc) {
             doc = node;
             node.react = { children: [] };
+            continue;
+        } else if (node === doc) {
+            // When we're leaving...
+            continue;
         }
 
         // `sourcePos` is true if the user wants source information (line/column info from markdown source)
@@ -91,32 +98,51 @@ function renderNodes(block) {
             continue;
         }
 
-        if (leaving) {
-            // Commonmark treats image description as children. We just want the text
-            if (node.type === 'Image') {
-                node.react.props.alt = node.react.children[0];
-                node.react.children = [];
+        // Commonmark treats image description as children. We just want the text
+        if (leaving && node.type === 'Image') {
+            node.react.props.alt = node.react.children[0];
+            node.react.children = [];
+        }
+
+        // `allowNode` is validated to be a function if it exists
+        var isDocument = node === doc;
+        var disallowedByConfig = this.allowedTypes.indexOf(node.type) === -1;
+        var disallowedByUser = false;
+
+        // Do we have a user-defined function?
+        var isCompleteParent = node.isContainer && leaving;
+        if (this.allowNode && (isCompleteParent || !node.isContainer)) {
+            var component = isCompleteParent ? node.react.component : this.components[node.type];
+            var nodeChildren = isCompleteParent ? node.react.children : [];
+
+            if (literalValueTypes.indexOf(node.type) !== -1) {
+                nodeChildren.push(node.literal);
             }
 
-            // `allowNode` is validated to be a function if it exists
-            if (node !== doc && this.allowNode && !this.allowNode({
+            disallowedByUser = !this.allowNode({
                 type: node.type,
-                tag: node.react.tag,
-                props: node.react.props,
-                children: node.react.children
-            })) {
-                continue;
+                // For backwards compatiblity - will be removed
+                tag: component,
+                component: component,
+                props: isCompleteParent ? node.react.props : attrs,
+                children: nodeChildren
+            });
+        }
+
+        if (!isDocument && (disallowedByUser || disallowedByConfig)) {
+            if (!unwrapDisallowed && entering && node.isContainer) {
+                walker.resumeAt(node, false);
             }
 
-            // `allowedTypes` is an array containing the allowed types
-            var nodeIsAllowed = this.allowedTypes.indexOf(node.type) !== -1;
-            if (node !== doc && nodeIsAllowed) {
-                addChild(node, createElement(
-                    node.react.tag,
-                    node.react.props,
-                    node.react.children
-                ));
-            }
+            continue;
+        }
+
+        if (leaving) {
+            addChild(node, createElement(
+                node.react.component,
+                node.react.props,
+                node.react.children
+            ));
 
             continue;
         }
@@ -253,12 +279,16 @@ function ReactRenderer(options) {
     return {
         sourcePos: opts.sourcePos,
         softBreak: opts.softBreak || '\n',
+        components: {},
         escapeHtml: Boolean(opts.escapeHtml),
         skipHtml: Boolean(opts.skipHtml),
         allowNode: opts.allowNode,
         allowedTypes: allowedTypes,
+        unwrapDisallowed: Boolean(opts.unwrapDisallowed),
         render: renderNodes
     };
 }
+
+ReactRenderer.types = allTypes;
 
 module.exports = ReactRenderer;
