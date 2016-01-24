@@ -98,12 +98,6 @@ function renderNodes(block) {
             continue;
         }
 
-        // Commonmark treats image description as children. We just want the text
-        if (leaving && node.type === 'Image') {
-            node.react.props.alt = node.react.children[0];
-            node.react.children = [];
-        }
-
         // `allowNode` is validated to be a function if it exists
         var isDocument = node === doc;
         var disallowedByConfig = this.allowedTypes.indexOf(node.type) === -1;
@@ -135,6 +129,12 @@ function renderNodes(block) {
             }
 
             continue;
+        }
+
+        // Commonmark treats image description as children. We just want the text
+        if (leaving && node.type === 'Image') {
+            node.react.props.alt = node.react.children[0];
+            node.react.children = [];
         }
 
         if (leaving) {
