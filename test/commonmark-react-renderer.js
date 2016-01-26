@@ -59,13 +59,7 @@ describe('react-markdown', function() {
 
     it('should handle images without title tags', function() {
         var input = 'This is ![an image](/ninja.png).';
-        var expected = '<p>This is <img src="/ninja.png" alt="an image"/>.</p>';
-        expect(parse(input)).to.equal(expected);
-    });
-
-    it('should handle images without title tags', function() {
-        var input = 'This is ![an image](/ninja.png "foo bar").';
-        var expected = '<p>This is <img src="/ninja.png" title="foo bar" alt="an image"/>.</p>';
+        var expected = '<p>This is <img alt="an image" src="/ninja.png"/>.</p>';
         expect(parse(input)).to.equal(expected);
     });
 
@@ -304,20 +298,50 @@ describe('react-markdown', function() {
         }).to.throw(Error, /allowNode.*?function/i);
     });
 
+    it('should throw if `renderers` is not a plain object', function() {
+        expect(function() {
+            parse('', { renderers: [1, 2] });
+        }).to.throw(Error, /renderers.*?object/i);
+    });
+
     it('should be able to use a custom function to determine if the node should be allowed', function() {
         var input = '# Header\n\n[react-markdown](https://github.com/rexxars/react-markdown/) is a nice helper\n\n';
         input += 'Also check out [my website](https://espen.codes/)';
 
         var output = parse(input, {
             allowNode: function(node) {
-                return node.type !== 'Link' || node.props.href.indexOf('https://github.com/') === 0;
+                return node.type !== 'Link';
             }
         });
 
         expect(output).to.equal([
-            '<h1>Header</h1><p><a href="https://github.com/rexxars/react-markdown/">react-markdown</a>',
+            '<h1>Header</h1><p>',
             ' is a nice helper</p><p>Also check out </p>'
         ].join(''));
+    });
+
+    it('should be possible to override default renderers.', function() {
+        var customRenderers = {
+            Strong: function(node, props, children) {
+                return React.createElement('b', props, children);
+            },
+            Text: function() {
+                return 'Placeholder';
+            },
+            Paragraph: function(node, props, children) {
+                return React.createElement('section', props, children);
+            }
+        };
+
+        var input = 'This is some *important* text.';
+
+        var output = parse(input, {
+            renderers: customRenderers
+        });
+
+        expect(output).to.equal(
+            '<section>Placeholder<em>Placeholder</em>Placeholder</section>'
+        );
     });
 });
 

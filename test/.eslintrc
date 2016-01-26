@@ -1,5 +1,6 @@
 {
     "rules": {
-        "no-unused-expressions": 0
+        "no-unused-expressions": 0,
+        "react/no-multi-comp": 0
     }
 }
