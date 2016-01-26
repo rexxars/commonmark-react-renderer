@@ -102,12 +102,13 @@ var renderers = {
     },
     CodeBlock: function(node, props, children) {
         var infoWords = node.info ? node.info.split(/ +/) : [];
+        var codeProps = {};
         if (infoWords.length > 0 && infoWords[0].length > 0) {
-            props.className = 'language-' + infoWords[0];
+            codeProps.className = 'language-' + infoWords[0];
         }
 
-        var code = element('code', props, children);
-        return element('pre', null, code);
+        var code = element('code', codeProps, children);
+        return element('pre', props, code);
     },
     BlockQuote: function(node, props, children) {
         return element('blockquote', props, children);
