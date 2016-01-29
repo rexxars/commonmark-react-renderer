@@ -281,6 +281,43 @@ describe('react-markdown', function() {
         expect(parse(input, {})).to.equal(expectedRaw);
     });
 
+    describe('should skip nodes that are defined as disallowed', function() {
+        var samples = {
+            HtmlInline: { input: 'Foo<strong>bar</strong>', shouldNotContain: 'Foo<span><strong>' },
+            HtmlBlock: { input: '<pre>\n<code>var foo = "bar";\n</code>\n</pre>\nYup', shouldNotContain: 'var foo' },
+            Text: { input: 'Zing', shouldNotContain: 'Zing' },
+            Paragraph: { input: 'Paragraphs are cool', shouldNotContain: 'Paragraphs are cool' },
+            Heading: { input: '# Headers are neat', shouldNotContain: 'Headers are neat' },
+            Softbreak: { input: 'Text\nSoftbreak', shouldNotContain: 'Text\nSoftbreak' },
+            Hardbreak: { input: 'Text  \nHardbreak', shouldNotContain: '<br/>' },
+            Link: { input: '[Espen\'s blog](http://espen.codes/) yeh?', shouldNotContain: '<a' },
+            Image: { input: 'Holy ![ninja](/ninja.png), batman', shouldNotContain: '<img' },
+            Emph: { input: 'Many *contributors*', shouldNotContain: '<em' },
+            Code: { input: 'Yeah, `renderToStaticMarkup()`', shouldNotContain: 'renderToStaticMarkup' },
+            CodeBlock: { input: '```\nvar moo = require(\'bar\');\moo();\n```', shouldNotContain: '<pre><code>' },
+            BlockQuote: { input: '> Moo\n> Tools\n> FTW\n', shouldNotContain: '<blockquote' },
+            List: { input: '* A list\n*Of things', shouldNotContain: 'Of things' },
+            Item: { input: '* IPA\n*Imperial Stout\n', shouldNotContain: '<li' },
+            Strong: { input: 'Don\'t **give up**, alright?', shouldNotContain: 'give up' },
+            ThematicBreak: { input: '\n-----\nAnd with that...', shouldNotContain: '<hr' }
+        };
+
+        var fullInput = Object.keys(samples).reduce(function(input, sampleType) {
+            return input + samples[sampleType].input + '\n';
+        }, '');
+
+        Object.keys(samples).forEach(function(type) {
+            it(type, function() {
+                var sample = samples[type];
+
+                expect(parse(fullInput, { disallowedTypes: [type] })).to.not.contain(sample.shouldNotContain);
+
+                // Just for sanity's sake, let ensure that the opposite is true
+                expect(parse(fullInput, {})).to.contain(sample.shouldNotContain);
+            });
+        });
+    });
+
     it('should translate deprecated types specified as disallowed types to their respective new names', function() {
         var input = 'Something\nOr other\n# Header\n\nParagraph\n## New header\n\nFoo';
         var expected = [
