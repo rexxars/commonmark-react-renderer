@@ -318,17 +318,6 @@ describe('react-markdown', function() {
         });
     });
 
-    it('should translate deprecated types specified as disallowed types to their respective new names', function() {
-        var input = 'Something\nOr other\n# Header\n\nParagraph\n## New header\n\nFoo';
-        var expected = [
-            '<p>Something\nOr other</p>',
-            '<p>Paragraph</p>',
-            '<p>Foo</p>'
-        ].join('');
-
-        expect(parse(input, { disallowedTypes: ['Header'] })).to.equal(expected);
-    });
-
     it('should throw if both allowed and disallowed types is specified', function() {
         expect(function() {
             parse('', { allowedTypes: ['foo'], disallowedTypes: ['bar'] });
@@ -353,6 +342,16 @@ describe('react-markdown', function() {
         }).to.throw(Error, /allowNode.*?function/i);
     });
 
+    it('should throw if `renderers` is not an object', function() {
+        expect(function() {
+            parse('', { renderers: [] });
+        }).to.throw(Error, /renderers.*?object/i);
+
+        expect(function() {
+            parse('', { renderers: 'foo' });
+        }).to.throw(Error, /renderers.*?object/i);
+    });
+
     it('should be able to use a custom function to determine if the node should be allowed', function() {
         var input = '# Header\n\n[react-markdown](https://github.com/rexxars/react-markdown/) is a nice helper\n\n';
         input += 'Also check out [my website](https://espen.codes/)';
@@ -368,6 +367,29 @@ describe('react-markdown', function() {
             ' is a nice helper</p><p>Also check out </p>'
         ].join(''));
     });
+
+    it('should be possible to override renderers used for given types', function() {
+        var input = '# Header\n---\nParagraph a day...\n```js\nvar keepTheDoctor = "away";\n```';
+        expect(parse(input, {
+            renderers: {
+                Heading: function(props) {
+                    return React.createElement('div', {className: 'level-' + props.level}, props.children);
+                },
+                CodeBlock: getCodeBlockComponent()
+            }
+        }).replace(/&quot;/g, '"')).to.equal([
+            '<div class="level-1">Header</div><hr/><p>Paragraph a day...</p>',
+            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n"}</pre>'
+        ].join(''));
+    });
+
+    it('should be possible to "unset" renderers by passing null-values for given types', function() {
+        var input = '# Header\n---\nParagraph a day...\n```js\nvar keepTheDoctor = "away";\n```';
+
+        expect(function() {
+            parse(input, { renderers: { Heading: null } });
+        }).to.throw(Error, /Heading/);
+    });
 });
 
 function getRenderer(opts) {
@@ -376,6 +398,17 @@ function getRenderer(opts) {
     }
 
     return reactRenderer;
+}
+
+function getCodeBlockComponent() {
+    return React.createFactory(
+        React.createClass({
+            displayName: 'CodeBlock',
+            render: function() {
+                return React.createElement('pre', null, JSON.stringify(this.props));
+            }
+        })
+    );
 }
 
 function getFakeWalker() {

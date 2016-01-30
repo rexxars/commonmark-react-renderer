@@ -35,6 +35,11 @@
     "react-dom": "^0.14.0"
   },
   "peerDependencies": {
-    "react": ">=0.13.3"
+    "react": ">=0.14.0",
+    "commonmark": "^0.24.0"
+  },
+  "dependencies": {
+    "lodash.assign": "^4.0.1",
+    "lodash.isplainobject": "^4.0.0"
   }
 }

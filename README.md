@@ -43,9 +43,61 @@ Pass an object of options to the renderer constructor to configure it. Available
 * `unwrapDisallowed` - *boolean* Setting to `true` will try to extract/unwrap the children of disallowed nodes. For instance, if disallowing `Strong`, the default behaviour is to simply skip the text within the strong altogether, while the behaviour some might want is to simply have the text returned without the strong wrapping it. (default: `false`)
 * `allowNode` - *function* Function execute if in order to determine if the node should be allowed. Ran prior to checking `allowedTypes`/`disallowedTypes`. Returning a truthy value will allow the node to be included. Note that if this function returns `true` and the type is not in `allowedTypes` (or specified as a `disallowedType`), it won't be included. The function will get a single object argument (`node`), which includes the following properties:
   * `type` - *string* The type of node - same ones accepted in `allowedTypes` and `disallowedTypes`
-  * `tag` - *string* The resolved tag name for this node
-  * `props` - *object* Properties for this tag
-  * `children* - *array* Array of unparsed children
+  * `renderer` - *string* The resolved renderer for this node
+  * `props` - *object* Properties for this node
+  * `children* - *array* Array of children
+* `renderers` - *object* An object where the keys represent the node type and the value is a React component. The object is merged with the default renderers. The props passed to the component varies based on the type of node. See the `Type renderer options` section below for more details.
+
+## Type renderer options
+
+### HtmlInline / HtmlBlock
+
+* `isBlock` - *boolean* `true` if type is `HtmlBlock`, `false` otherwise
+* `escapeHtml` - *boolean* Same as renderer option, see above
+* `skipHtml` - *boolean* Same as renderer option, see above
+* `literal` - *string* The HTML fragment
+
+### CodeBlock
+
+* `language` - *string* Language info tag, for instance \```js would set this to `js`. Undefined if the tag is not present in the source.
+* `literal` - *string* The string value of the code block
+
+### Code
+
+* `literal` - *string* The string value of the inline code
+
+### Heading
+
+* `level` - *number* Heading level, from 1 to 6.
+* `children` - *node* One or more child nodes for the heading
+
+### Softbreak
+
+* `softBreak` - *mixed* Depending on the `softBreak` setting of the actual renderer, either a given string or a React linebreak element
+
+### Link
+
+* `href` - *string* URL for the link
+* `title` - *string* Title for the link, if any
+* `children* - *node* One or more child nodes for the link
+
+### Image
+
+* `src` - *string* URL for the image
+* `title` - *string* Title for the image, if any
+* `alt` - *string* Alternative text for the image, if any
+
+### List
+
+* `start` - *number* Start index of the list
+* `type` - *string* Type of list (`Bullet`/`Ordered`)
+* `tight` - *boolean* Whether the list is tight or not (see [http://spec.commonmark.org/0.23/#lists](CommonMark spec) for more details)
+
+### Common
+
+* `children` - *node* Child nodes of the current node
+* `literal` - *string* A literal representation of the node, where applicable
+* `data-sourcepos` - *string* If `sourcePos` option is set, passed to all types and should be present in all the DOM-representations to signify the source position of this node
 
 ## Testing
 

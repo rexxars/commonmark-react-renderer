@@ -1,26 +1,63 @@
 'use strict';
 
 var React = require('react');
+var assign = require('lodash.assign');
+var isPlainObject = require('lodash.isplainobject');
 
-var allTypes = [
-    'HtmlInline', 'HtmlBlock', 'Text', 'Paragraph', 'Heading', 'Softbreak', 'Hardbreak',
-    'Link', 'Image', 'Emph', 'Code', 'CodeBlock', 'BlockQuote', 'List', 'Item',
-    'Strong', 'ThematicBreak', 'Document'
-];
+var defaultRenderers = {
+    BlockQuote: getDomRenderer('blockquote'),
+    Code: getDomRenderer('code'),
+    Emph: getDomRenderer('em'),
+    Hardbreak: getDomRenderer('br'),
+    Image: getDomRenderer('img'),
+    Item: getDomRenderer('li'),
+    Link: getDomRenderer('a'),
+    Paragraph: getDomRenderer('p'),
+    Strong: getDomRenderer('strong'),
+    ThematicBreak: getDomRenderer('hr'),
 
-var deprecated = {
-    Html: 'HtmlInline',
-    Header: 'Heading',
-    HorizontalRule: 'ThematicBreak'
+    HtmlBlock: HtmlRenderer,
+    HtmlInline: HtmlRenderer,
+
+    List: function List(props) {
+        var tag = props.type === 'Bullet' ? 'ul' : 'ol';
+        return createElement(tag, (
+            props.start !== null &&
+            props.start !== 1 &&
+            { start: props.start.toString() } || null
+        ), props.children);
+    },
+    CodeBlock: function Code(props) {
+        var className = props.language && 'language-' + props.language;
+        var code = createElement('code', { className: className }, props.literal);
+        return createElement('pre', {}, code);
+    },
+    Heading: function Heading(props) {
+        return createElement('h' + props.level, props, props.children);
+    },
+    Text: function Text(props) {
+        return props.literal;
+    },
+    Softbreak: function Softbreak(props) {
+        return props.softBreak;
+    }
 };
 
-var literalValueTypes = ['HtmlInline', 'HtmlBlock', 'Text', 'Code', 'CodeBlock'];
+function HtmlRenderer(props) {
+    if (props.escapeHtml) {
+        return props.literal;
+    }
 
-function tag(node, name, attrs, children) {
-    node.react = {
-        component: name,
-        props: attrs,
-        children: children || []
+    if (!props.skipHtml) {
+        return createElement(props.isBlock ? 'div' : 'span', {
+            dangerouslySetInnerHTML: { __html: props.literal }
+        });
+    }
+}
+
+function getDomRenderer(tag) {
+    return function domRenderer(props) {
+        return createElement(tag, props, props.children);
     };
 }
 
@@ -44,17 +81,72 @@ function addChild(node, child) {
 
 function createElement(tagName, props, children) {
     var args = [tagName, props].concat(children);
-    var child = React.createElement.apply(React, args);
-    return child;
+    return React.createElement.apply(React, args);
+}
+
+// For some nodes, we want to include more props than for others
+function getNodeProps(node, key, opts, undef) {
+    var props = { key: key };
+
+    // `sourcePos` is true if the user wants source information (line/column info from markdown source)
+    if (opts.sourcePos && node.sourcepos) {
+        var pos = node.sourcepos;
+        props['data-sourcepos'] = [
+            pos[0][0], ':', pos[0][1], '-',
+            pos[1][0], ':', pos[1][1]
+        ].map(String).join('');
+    }
+
+    switch (node.type) {
+        case 'HtmlInline':
+        case 'HtmlBlock':
+            props.isBlock = node.type === 'HtmlBlock';
+            props.escapeHtml = opts.escapeHtml;
+            props.skipHtml = opts.skipHtml;
+            break;
+        case 'CodeBlock':
+            var codeInfo = node.info ? node.info.split(/ +/) : [];
+            if (codeInfo.length > 0 && codeInfo[0].length > 0) {
+                props.language = codeInfo[0];
+            }
+            break;
+        case 'Code':
+            props.children = node.literal;
+            break;
+        case 'Heading':
+            props.level = node.level;
+            break;
+        case 'Softbreak':
+            props.softBreak = opts.softBreak;
+            break;
+        case 'Link':
+            props.href = node.destination;
+            props.title = node.title || undef;
+            break;
+        case 'Image':
+            props.src = node.destination;
+            props.title = node.title || undef;
+
+            // Commonmark treats image description as children. We just want the text
+            props.alt = node.react.children[0];
+            node.react.children = undef;
+            break;
+        case 'List':
+            props.start = node.listStart;
+            props.type = node.listType;
+            props.tight = node.listTight;
+            break;
+        default:
+    }
+
+    props.children = props.children || (node.react && node.react.children);
+    props.literal = node.literal;
+
+    return props;
 }
 
 function renderNodes(block) {
     var walker = block.walker();
-    var sourcePos = this.sourcePos;
-    var escapeHtml = this.escapeHtml;
-    var skipHtml = this.skipHtml;
-    var unwrapDisallowed = this.unwrapDisallowed;
-    var infoWords;
 
     // Softbreaks are usually treated as newlines, but in HTML we might want explicit linebreaks
     var softBreak = (
@@ -63,13 +155,20 @@ function renderNodes(block) {
         this.softBreak
     );
 
-    var e, node, entering, leaving, attrs, doc, key;
+    var propOptions = {
+        sourcePos: this.sourcePos,
+        escapeHtml: this.escapeHtml,
+        skipHtml: this.skipHtml,
+        softBreak: softBreak
+    };
+
+    var e, node, entering, leaving, doc, key, nodeProps;
     while ((e = walker.next())) {
         entering = e.entering;
         leaving = !entering;
         node = e.node;
         key = !e.node.prev ? 0 : e.node.prev.reactKey + 1;
-        attrs = { key: key };
+        nodeProps = null;
 
         // Assigning a key to the node
         node.reactKey = key;
@@ -82,15 +181,6 @@ function renderNodes(block) {
         } else if (node === doc) {
             // When we're leaving...
             continue;
-        }
-
-        // `sourcePos` is true if the user wants source information (line/column info from markdown source)
-        if (sourcePos && node.sourcepos) {
-            var pos = node.sourcepos;
-            attrs['data-sourcepos'] = [
-                pos[0][0], ':', pos[0][1], '-',
-                pos[1][0], ':', pos[1][1]
-            ].map(String).join('');
         }
 
         // In HTML, we don't want paragraphs inside of list items
@@ -106,147 +196,44 @@ function renderNodes(block) {
         // Do we have a user-defined function?
         var isCompleteParent = node.isContainer && leaving;
         if (this.allowNode && (isCompleteParent || !node.isContainer)) {
-            var component = isCompleteParent ? node.react.component : this.components[node.type];
             var nodeChildren = isCompleteParent ? node.react.children : [];
 
-            if (literalValueTypes.indexOf(node.type) !== -1) {
-                nodeChildren.push(node.literal);
-            }
-
+            nodeProps = getNodeProps(node, key, propOptions);
             disallowedByUser = !this.allowNode({
                 type: node.type,
-                // For backwards compatiblity - will be removed
-                tag: component,
-                component: component,
-                props: isCompleteParent ? node.react.props : attrs,
+                renderer: this.renderers[node.type],
+                props: nodeProps,
                 children: nodeChildren
             });
         }
 
         if (!isDocument && (disallowedByUser || disallowedByConfig)) {
-            if (!unwrapDisallowed && entering && node.isContainer) {
+            if (!this.unwrapDisallowed && entering && node.isContainer) {
                 walker.resumeAt(node, false);
             }
 
             continue;
         }
 
-        // Commonmark treats image description as children. We just want the text
-        if (leaving && node.type === 'Image') {
-            node.react.props.alt = node.react.children[0];
-            node.react.children = [];
+        var renderer = this.renderers[node.type];
+        if (typeof renderer !== 'function') {
+            throw new Error(
+                'Renderer for type `' + node.type + '` not defined or is not a function'
+            );
         }
 
-        if (leaving) {
-            addChild(node, createElement(
-                node.react.component,
-                node.react.props,
-                node.react.children
-            ));
-
-            continue;
-        }
-
-        // Entering a new node
-        switch (node.type) {
-            case 'HtmlInline':
-            case 'HtmlBlock':
-                if (escapeHtml) {
-                    addChild(node, node.literal);
-                } else if (!skipHtml) {
-                    attrs.dangerouslySetInnerHTML = {
-                        __html: node.literal
-                    };
-
-                    addChild(node, createElement(
-                        node.type === 'HtmlInline' ? 'span' : 'div',
-                        attrs
-                    ));
-                }
-                break;
-            case 'Text':
-                addChild(node, node.literal);
-                break;
-            case 'Paragraph':
-                tag(node, 'p', attrs);
-                break;
-            case 'Heading':
-                tag(node, 'h' + node.level, attrs);
-                break;
-            case 'Softbreak':
-                addChild(node, softBreak);
-                break;
-            case 'Hardbreak':
-                addChild(node, React.createElement('br'));
-                break;
-            case 'Strong':
-                tag(node, 'strong', attrs);
-                break;
-            case 'Link':
-                attrs.href = node.destination;
-                if (node.title) {
-                    attrs.title = node.title;
-                }
-                tag(node, 'a', attrs);
-                break;
-            case 'Image':
-                attrs.src = node.destination;
-                if (node.title) {
-                    attrs.title = node.title;
-                }
-                tag(node, 'img', attrs);
-                break;
-            case 'Emph':
-                tag(node, 'em', attrs);
-                break;
-            case 'Code':
-                addChild(node, createElement(
-                    'code',
-                    attrs,
-                    [node.literal]
-                ));
-                break;
-            case 'CodeBlock':
-                infoWords = node.info ? node.info.split(/ +/) : [];
-                if (infoWords.length > 0 && infoWords[0].length > 0) {
-                    attrs.className = 'language-' + infoWords[0];
-                }
-
-                var code = createElement('code', attrs, [node.literal]);
-                addChild(node, createElement('pre', {}, [code]));
-                break;
-            case 'BlockQuote':
-                tag(node, 'blockquote', attrs);
-                break;
-            case 'List':
-                var start = node.listStart;
-                if (start !== null && start !== 1) {
-                    attrs.start = start.toString();
-                }
-                tag(node, node.listType === 'Bullet' ? 'ul' : 'ol', attrs);
-                break;
-            case 'Item':
-                tag(node, 'li', attrs);
-                break;
-            case 'ThematicBreak':
-                addChild(node, createElement('hr', attrs));
-                break;
-            case 'Document':
-                break;
-            default:
-                throw new Error('Unknown node type "' + node.type + '"');
+        if (node.isContainer && entering) {
+            node.react = {
+                component: renderer,
+                props: {},
+                children: []
+            };
+        } else {
+            addChild(node, renderer(nodeProps || getNodeProps(node, key, propOptions)));
         }
     }
 
     return doc.react.children;
-}
-
-function replaceDeprecatedType(type) {
-    if (deprecated[type]) {
-        return deprecated[type];
-    }
-
-    return type;
 }
 
 function ReactRenderer(options) {
@@ -268,18 +255,21 @@ function ReactRenderer(options) {
         throw new Error('`allowNode` must be a function');
     }
 
-    var allowedTypes = (opts.allowedTypes || allTypes).map(replaceDeprecatedType);
+    if (opts.renderers && !isPlainObject(opts.renderers)) {
+        throw new Error('`renderers` must be a plain object of `Type`: `Renderer` pairs');
+    }
+
+    var allowedTypes = opts.allowedTypes || ReactRenderer.types;
     if (opts.disallowedTypes) {
-        var disallowed = opts.disallowedTypes.map(replaceDeprecatedType);
-        allowedTypes = allowedTypes.filter(function(type) {
-            return disallowed.indexOf(type) === -1;
+        allowedTypes = allowedTypes.filter(function filterDisallowed(type) {
+            return opts.disallowedTypes.indexOf(type) === -1;
         });
     }
 
     return {
-        sourcePos: opts.sourcePos,
+        sourcePos: Boolean(opts.sourcePos),
         softBreak: opts.softBreak || '\n',
-        components: {},
+        renderers: assign({}, defaultRenderers, opts.renderers),
         escapeHtml: Boolean(opts.escapeHtml),
         skipHtml: Boolean(opts.skipHtml),
         allowNode: opts.allowNode,
@@ -289,6 +279,7 @@ function ReactRenderer(options) {
     };
 }
 
-ReactRenderer.types = allTypes;
+ReactRenderer.types = Object.keys(defaultRenderers);
+ReactRenderer.renderers = defaultRenderers;
 
 module.exports = ReactRenderer;
