@@ -21,16 +21,18 @@ var defaultRenderers = {
 
     List: function List(props) {
         var tag = props.type === 'Bullet' ? 'ul' : 'ol';
-        return createElement(tag, (
-            props.start !== null &&
-            props.start !== 1 &&
-            { start: props.start.toString() } || null
-        ), props.children);
+        var attrs = { key: props.key };
+
+        if (props.start !== null && props.start !== 1) {
+            assign(attrs, { start: props.start.toString() });
+        }
+
+        return createElement(tag, attrs, props.children);
     },
     CodeBlock: function Code(props) {
         var className = props.language && 'language-' + props.language;
         var code = createElement('code', { className: className }, props.literal);
-        return createElement('pre', {}, code);
+        return createElement('pre', {key: props.key}, code);
     },
     Heading: function Heading(props) {
         return createElement('h' + props.level, props, props.children);
