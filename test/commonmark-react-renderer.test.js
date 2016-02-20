@@ -9,6 +9,13 @@ var React = require('react'),
 var parser = new commonmark.Parser(),
     reactRenderer = new ReactRenderer();
 
+var xssInput = [
+    '# [Much fun](javascript:alert("foo"))',
+    'Can be had with [XSS links](vbscript:foobar)',
+    '> And [other](VBSCRIPT:bap) nonsense... [files](file:///etc/passwd) for instance',
+    '## [Entities](javascript&#x3A;alert("bazinga")) can be tricky, too'
+].join('\n\n');
+
 describe('react-markdown', function() {
     it('should wrap single-line plain text in a paragraph', function() {
         var input = 'React is awesome';
@@ -389,6 +396,40 @@ describe('react-markdown', function() {
         expect(function() {
             parse(input, { renderers: { Heading: null } });
         }).to.throw(Error, /Heading/);
+    });
+
+    it('does not allow javascript, vbscript or file protocols by default', function() {
+        expect(parse(xssInput)).to.equal([
+            '<h1><a href="x-javascript:alert(%2522foo%2522)">Much fun</a></h1><p>Can be had with ',
+            '<a href="x-vbscript:foobar">XSS links</a></p><blockquote><p>',
+            'And <a href="x-VBSCRIPT:bap">other</a> nonsense... ',
+            '<a href="x-file:///etc/passwd">files</a> for instance</p></blockquote><h2>',
+            '<a href="x-javascript:alert(%2522bazinga%2522)">Entities</a> can be tricky, too</h2>'
+        ].join(''));
+    });
+
+    it('allows disabling built-in uri filter', function() {
+        var output = parse(xssInput, { transformLinkUri: null });
+
+        expect(output).to.equal([
+            '<h1><a href="javascript:alert(%22foo%22)">Much fun</a></h1><p>Can be had with ',
+            '<a href="vbscript:foobar">XSS links</a></p><blockquote><p>',
+            'And <a href="VBSCRIPT:bap">other</a> nonsense... ',
+            '<a href="file:///etc/passwd">files</a> for instance</p></blockquote><h2>',
+            '<a href="javascript:alert(%22bazinga%22)">Entities</a> can be tricky, too</h2>'
+        ].join(''));
+    });
+
+    it('allows specifying a custom uri filter', function() {
+        var output = parse('[foo](http://snails.r.us/pfft), also [bar](http://foo.bar/)', {
+            transformLinkUri: function(uri) {
+                return uri.replace(/snails/g, 'cheetahs');
+            }
+        });
+
+        expect(output).to.equal(
+            '<p><a href="http://cheetahs.r.us/pfft">foo</a>, also <a href="http://foo.bar/">bar</a></p>'
+        );
     });
 });
 

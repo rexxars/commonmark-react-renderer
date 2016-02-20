@@ -3,6 +3,7 @@
 var React = require('react');
 var assign = require('lodash.assign');
 var isPlainObject = require('lodash.isplainobject');
+var xssFilters = require('xss-filters');
 
 var defaultRenderers = {
     BlockQuote: getDomRenderer('blockquote'),
@@ -120,7 +121,7 @@ function getNodeProps(node, key, opts, undef) {
             props.softBreak = opts.softBreak;
             break;
         case 'Link':
-            props.href = node.destination;
+            props.href = opts.transformLinkUri ? opts.transformLinkUri(node.destination) : node.destination;
             props.title = node.title || undef;
             break;
         case 'Image':
@@ -159,6 +160,7 @@ function renderNodes(block) {
         sourcePos: this.sourcePos,
         escapeHtml: this.escapeHtml,
         skipHtml: this.skipHtml,
+        transformLinkUri: this.transformLinkUri,
         softBreak: softBreak
     };
 
@@ -188,7 +190,6 @@ function renderNodes(block) {
             continue;
         }
 
-        // `allowNode` is validated to be a function if it exists
         var isDocument = node === doc;
         var disallowedByConfig = this.allowedTypes.indexOf(node.type) === -1;
         var disallowedByUser = false;
@@ -236,6 +237,11 @@ function renderNodes(block) {
     return doc.react.children;
 }
 
+function defaultLinkUriFilter(uri) {
+    var url = uri.replace(/file:\/\//g, 'x-file://');
+    return xssFilters.uriInDoubleQuotedAttr(url);
+}
+
 function ReactRenderer(options) {
     var opts = options || {};
 
@@ -255,6 +261,13 @@ function ReactRenderer(options) {
         throw new Error('`allowNode` must be a function');
     }
 
+    var linkFilter = opts.transformLinkUri;
+    if (typeof linkFilter === 'undefined') {
+        linkFilter = defaultLinkUriFilter;
+    } else if (linkFilter && typeof linkFilter !== 'function') {
+        throw new Error('`transformLinkUri` must either be a function, or `null` to disable');
+    }
+
     if (opts.renderers && !isPlainObject(opts.renderers)) {
         throw new Error('`renderers` must be a plain object of `Type`: `Renderer` pairs');
     }
@@ -272,6 +285,7 @@ function ReactRenderer(options) {
         renderers: assign({}, defaultRenderers, opts.renderers),
         escapeHtml: Boolean(opts.escapeHtml),
         skipHtml: Boolean(opts.skipHtml),
+        transformLinkUri: linkFilter,
         allowNode: opts.allowNode,
         allowedTypes: allowedTypes,
         unwrapDisallowed: Boolean(opts.unwrapDisallowed),
