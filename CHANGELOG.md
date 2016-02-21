@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [3.0.2] - 2016-02-21
+
+### Changes
+
+- The default URI transformer no longer applies double URI-encoding.
+
 ## [3.0.1] - 2016-02-21
 
 ### Added

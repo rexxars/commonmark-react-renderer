@@ -400,11 +400,11 @@ describe('react-markdown', function() {
 
     it('does not allow javascript, vbscript or file protocols by default', function() {
         expect(parse(xssInput)).to.equal([
-            '<h1><a href="x-javascript:alert(%2522foo%2522)">Much fun</a></h1><p>Can be had with ',
+            '<h1><a href="x-javascript:alert(%22foo%22)">Much fun</a></h1><p>Can be had with ',
             '<a href="x-vbscript:foobar">XSS links</a></p><blockquote><p>',
             'And <a href="x-VBSCRIPT:bap">other</a> nonsense... ',
             '<a href="x-file:///etc/passwd">files</a> for instance</p></blockquote><h2>',
-            '<a href="x-javascript:alert(%2522bazinga%2522)">Entities</a> can be tricky, too</h2>'
+            '<a href="x-javascript:alert(%22bazinga%22)">Entities</a> can be tricky, too</h2>'
         ].join(''));
     });
 
@@ -444,7 +444,7 @@ describe('react-markdown', function() {
     it('exposes the default URI-transformer on the `uriTransformer`-property', function() {
         expect(ReactRenderer.uriTransformer).to.be.a('function');
         expect(ReactRenderer.uriTransformer('javascript:alert("foo")')) // eslint-disable-line no-script-url
-            .to.equal('x-javascript:alert(%22foo%22)');
+            .to.equal('x-javascript:alert("foo")');
     });
 });
 

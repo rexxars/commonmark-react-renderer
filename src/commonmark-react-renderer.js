@@ -239,7 +239,10 @@ function renderNodes(block) {
 
 function defaultLinkUriFilter(uri) {
     var url = uri.replace(/file:\/\//g, 'x-file://');
-    return xssFilters.uriInDoubleQuotedAttr(url);
+
+    // React does a pretty swell job of escaping attributes,
+    // so to prevent double-escaping, we need to decode
+    return decodeURI(xssFilters.uriInDoubleQuotedAttr(url));
 }
 
 function ReactRenderer(options) {
