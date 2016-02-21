@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [4.0.0] - 2016-02-21
+
+### Changes
+
+- **Breaking change**: Inline HTML nodes are now wrapped in a `<span>`, block HTML nodes in `<div>`. This is necessary to properly support custom renderers.
+
 ## [3.0.2] - 2016-02-21
 
 ### Changes

@@ -36,23 +36,17 @@ var defaultRenderers = {
     Heading: function Heading(props) {
         return createElement('h' + props.level, props, props.children);
     },
-    Text: function Text(props) {
-        return props.literal;
-    },
-    Softbreak: function Softbreak(props) {
-        return props.softBreak;
-    }
+
+    Text: null,
+    Softbreak: null
 };
 
 function HtmlRenderer(props) {
-    if (props.escapeHtml) {
-        return props.literal;
-    }
+    var nodeProps = props.escapeHtml ? {} : { dangerouslySetInnerHTML: { __html: props.literal } };
+    var children = props.escapeHtml ? [props.literal] : null;
 
-    if (!props.skipHtml) {
-        return createElement(props.isBlock ? 'div' : 'span', {
-            dangerouslySetInnerHTML: { __html: props.literal }
-        });
+    if (props.escapeHtml || !props.skipHtml) {
+        return createElement(props.isBlock ? 'div' : 'span', nodeProps, children);
     }
 }
 
@@ -190,6 +184,11 @@ function renderNodes(block) {
             continue;
         }
 
+        // If we're skipping HTML nodes, don't keep processing
+        if (this.skipHtml && (node.type === 'HtmlBlock' || node.type === 'HtmlInline')) {
+            continue;
+        }
+
         var isDocument = node === doc;
         var disallowedByConfig = this.allowedTypes.indexOf(node.type) === -1;
         var disallowedByUser = false;
@@ -217,7 +216,8 @@ function renderNodes(block) {
         }
 
         var renderer = this.renderers[node.type];
-        if (typeof renderer !== 'function') {
+        var isSimpleNode = node.type === 'Text' || node.type === 'Softbreak';
+        if (typeof renderer !== 'function' && !isSimpleNode) {
             throw new Error(
                 'Renderer for type `' + node.type + '` not defined or is not a function'
             );
@@ -230,7 +230,14 @@ function renderNodes(block) {
                 children: []
             };
         } else {
-            addChild(node, renderer(nodeProps || getNodeProps(node, key, propOptions)));
+            var childProps = nodeProps || getNodeProps(node, key, propOptions);
+            if (renderer) {
+                addChild(node, React.createElement(renderer, childProps));
+            } else if (node.type === 'Text') {
+                addChild(node, node.literal);
+            } else if (node.type === 'Softbreak') {
+                addChild(node, softBreak);
+            }
         }
     }
 

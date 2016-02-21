@@ -16,6 +16,13 @@ var xssInput = [
     '## [Entities](javascript&#x3A;alert("bazinga")) can be tricky, too'
 ].join('\n\n');
 
+var CodeBlockComponent = React.createClass({
+    displayName: 'CodeBlock',
+    render: function() {
+        return React.createElement('pre', null, JSON.stringify(this.props));
+    }
+});
+
 describe('react-markdown', function() {
     it('should wrap single-line plain text in a paragraph', function() {
         var input = 'React is awesome';
@@ -171,7 +178,7 @@ describe('react-markdown', function() {
 
     it('should handle inline html with escapeHtml option enabled', function() {
         var input = 'I am having <strong>so</strong> much fun';
-        var expected = '<p>I am having &lt;strong&gt;so&lt;/strong&gt; much fun</p>';
+        var expected = '<p>I am having <span>&lt;strong&gt;</span>so<span>&lt;/strong&gt;</span> much fun</p>';
         expect(parse(input, { escapeHtml: true })).to.equal(expected);
     });
 
@@ -205,9 +212,9 @@ describe('react-markdown', function() {
         ].join('');
 
         var expected = [
-            '<p>This is a regular paragraph.</p>&lt;table&gt;\n    ',
+            '<p>This is a regular paragraph.</p><div>&lt;table&gt;\n    ',
             '&lt;tr&gt;\n        &lt;td&gt;Foo&lt;/td&gt;\n    &lt;/tr&gt;\n',
-            '&lt;/table&gt;<p>This is another regular paragraph.</p>'
+            '&lt;/table&gt;</div><p>This is another regular paragraph.</p>'
         ].join('');
 
         expect(parse(input, { escapeHtml: true })).to.equal(expected);
@@ -376,17 +383,18 @@ describe('react-markdown', function() {
     });
 
     it('should be possible to override renderers used for given types', function() {
-        var input = '# Header\n---\nParagraph a day...\n```js\nvar keepTheDoctor = "away";\n```';
+        var input = '# Header\n---\nParagraph a day...\n```js\nvar keepTheDoctor = "away";\n```\n> Foo';
         expect(parse(input, {
             renderers: {
                 Heading: function(props) {
                     return React.createElement('div', {className: 'level-' + props.level}, props.children);
                 },
-                CodeBlock: getCodeBlockComponent()
+                CodeBlock: CodeBlockComponent
             }
         }).replace(/&quot;/g, '"')).to.equal([
             '<div class="level-1">Header</div><hr/><p>Paragraph a day...</p>',
-            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n"}</pre>'
+            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n"}</pre>',
+            '<blockquote><p>Foo</p></blockquote>'
         ].join(''));
     });
 
@@ -454,17 +462,6 @@ function getRenderer(opts) {
     }
 
     return reactRenderer;
-}
-
-function getCodeBlockComponent() {
-    return React.createFactory(
-        React.createClass({
-            displayName: 'CodeBlock',
-            render: function() {
-                return React.createElement('pre', null, JSON.stringify(this.props));
-            }
-        })
-    );
 }
 
 function getFakeWalker() {
