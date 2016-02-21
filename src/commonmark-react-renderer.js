@@ -6,16 +6,16 @@ var isPlainObject = require('lodash.isplainobject');
 var xssFilters = require('xss-filters');
 
 var defaultRenderers = {
-    BlockQuote: getDomRenderer('blockquote'),
-    Code: getDomRenderer('code'),
-    Emph: getDomRenderer('em'),
-    Hardbreak: getDomRenderer('br'),
-    Image: getDomRenderer('img'),
-    Item: getDomRenderer('li'),
-    Link: getDomRenderer('a'),
-    Paragraph: getDomRenderer('p'),
-    Strong: getDomRenderer('strong'),
-    ThematicBreak: getDomRenderer('hr'),
+    BlockQuote: 'blockquote',
+    Code: 'code',
+    Emph: 'em',
+    Hardbreak: 'br',
+    Image: 'img',
+    Item: 'li',
+    Link: 'a',
+    Paragraph: 'p',
+    Strong: 'strong',
+    ThematicBreak: 'hr',
 
     HtmlBlock: HtmlRenderer,
     HtmlInline: HtmlRenderer,
@@ -48,12 +48,6 @@ function HtmlRenderer(props) {
     if (props.escapeHtml || !props.skipHtml) {
         return createElement(props.isBlock ? 'div' : 'span', nodeProps, children);
     }
-}
-
-function getDomRenderer(tag) {
-    return function domRenderer(props) {
-        return createElement(tag, props, props.children);
-    };
 }
 
 function isGrandChildOfList(node) {
@@ -217,9 +211,9 @@ function renderNodes(block) {
 
         var renderer = this.renderers[node.type];
         var isSimpleNode = node.type === 'Text' || node.type === 'Softbreak';
-        if (typeof renderer !== 'function' && !isSimpleNode) {
+        if (typeof renderer !== 'function' && !isSimpleNode && typeof renderer !== 'string') {
             throw new Error(
-                'Renderer for type `' + node.type + '` not defined or is not a function'
+                'Renderer for type `' + node.type + '` not defined or is not renderable'
             );
         }
 
