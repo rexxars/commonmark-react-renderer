@@ -431,6 +431,21 @@ describe('react-markdown', function() {
             '<p><a href="http://cheetahs.r.us/pfft">foo</a>, also <a href="http://foo.bar/">bar</a></p>'
         );
     });
+
+    it('exposes a list of available types on the `types`-property', function() {
+        expect(ReactRenderer.types).to.be.an('array');
+        expect(ReactRenderer.types).to.include('ThematicBreak');
+    });
+
+    it('exposes the default renders on the `renderers`-property', function() {
+        expect(ReactRenderer.renderers.Image).to.be.a('function');
+    });
+
+    it('exposes the default URI-transformer on the `uriTransformer`-property', function() {
+        expect(ReactRenderer.uriTransformer).to.be.a('function');
+        expect(ReactRenderer.uriTransformer('javascript:alert("foo")')) // eslint-disable-line no-script-url
+            .to.equal('x-javascript:alert(%22foo%22)');
+    });
 });
 
 function getRenderer(opts) {

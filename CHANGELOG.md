@@ -2,6 +2,13 @@
 
 All notable changes will be documented in this file.
 
+## [3.0.1] - 2016-02-21
+
+### Added
+
+- The default URI transformer is now exposed on the `uriTransformer` property of the renderer, allowing it to be reused.
+- Documentation for `transformLinkUri`-option.
+
 ## [3.0.0] - 2016-02-21
 
 ### Changes
@@ -16,7 +23,7 @@ All notable changes will be documented in this file.
 
 - New `renderers` option allows you to customize which React component should be used for rendering given types. See `README.md` for more details. (Espen Hovlandsdal / Guillaume Plique)
 - New `unwrapDisallowed` option allows you to select if the contents of a disallowed node should be "unwrapped" (placed into the disallowed node position). For instance, setting this option to true and disallowing a link would still render the text of the link, instead of the whole link node and all it's children disappearing. (Espen Hovlandsdal)
-- New `transformLinkUri` option allows you to transform URIs in links. By default, an XSS-filter is used, but you could also use this for use cases like transforming absolute to relative URLs, or similar.
+- New `transformLinkUri` option allows you to transform URIs in links. By default, an XSS-filter is used, but you could also use this for use cases like transforming absolute to relative URLs, or similar. (Espen Hovlandsdal)
 
 ## [2.2.2] - 2016-01-22
 

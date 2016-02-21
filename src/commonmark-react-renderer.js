@@ -295,5 +295,6 @@ function ReactRenderer(options) {
 
 ReactRenderer.types = Object.keys(defaultRenderers);
 ReactRenderer.renderers = defaultRenderers;
+ReactRenderer.uriTransformer = defaultLinkUriFilter;
 
 module.exports = ReactRenderer;
