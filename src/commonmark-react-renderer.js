@@ -37,9 +37,18 @@ var defaultRenderers = {
         return createElement('h' + props.level, props, props.children);
     },
 
-    Text: null,
-    Softbreak: null
+    Text: simple(function(props) {
+        return props.literal;
+    }),
+    Softbreak: simple(function(props) {
+        return props.softBreak;
+    })
 };
+
+function simple(fn) {
+    fn.simple = true;
+    return fn;
+}
 
 function HtmlRenderer(props) {
     var nodeProps = props.escapeHtml ? {} : { dangerouslySetInnerHTML: { __html: props.literal } };
@@ -216,8 +225,7 @@ function renderNodes(block) {
         }
 
         var renderer = this.renderers[node.type];
-        var isSimpleNode = node.type === 'Text' || node.type === 'Softbreak';
-        if (typeof renderer !== 'function' && !isSimpleNode) {
+        if (typeof renderer !== 'function' && typeof renderer !== 'string') {
             throw new Error(
                 'Renderer for type `' + node.type + '` not defined or is not a function'
             );
@@ -231,12 +239,10 @@ function renderNodes(block) {
             };
         } else {
             var childProps = nodeProps || getNodeProps(node, key, propOptions);
-            if (renderer) {
+            if (renderer.simple) {
+                addChild(node, renderer(childProps));
+            } else {
                 addChild(node, React.createElement(renderer, childProps));
-            } else if (node.type === 'Text') {
-                addChild(node, node.literal);
-            } else if (node.type === 'Softbreak') {
-                addChild(node, softBreak);
             }
         }
     }
