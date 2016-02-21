@@ -446,7 +446,8 @@ describe('react-markdown', function() {
     });
 
     it('exposes the default renders on the `renderers`-property', function() {
-        expect(ReactRenderer.renderers.Image).to.be.a('function');
+        expect(ReactRenderer.renderers.Image).to.be.a('string');
+        expect(ReactRenderer.renderers.HtmlBlock).to.be.a('function');
     });
 
     it('exposes the default URI-transformer on the `uriTransformer`-property', function() {
