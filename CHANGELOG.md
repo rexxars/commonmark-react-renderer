@@ -2,6 +2,13 @@
 
 All notable changes will be documented in this file.
 
+## [4.0.1] - 2016-02-21
+
+### Changes
+
+- Use strings as renderers in simple cases (Glen Mailer)
+- Set keys on lists and code blocks (Guillaume Plique)
+
 ## [4.0.0] - 2016-02-21
 
 ### Changes
