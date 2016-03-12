@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [4.1.2] - 2016-03-12
+
+### Changes
+
+- Also join sibling nodes within paragraphs and similar (Espen Hovlandsdal)
+
 ## [4.1.1] - 2016-03-12
 
 ### Changes

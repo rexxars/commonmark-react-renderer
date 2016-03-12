@@ -142,8 +142,12 @@ function getNodeProps(node, key, opts, undef) {
         default:
     }
 
-    props.children = props.children || (node.react && node.react.children);
     props.literal = node.literal;
+
+    var children = props.children || (node.react && node.react.children);
+    if (Array.isArray(children)) {
+        props.children = children.reduce(reduceChildren, []) || null;
+    }
 
     return props;
 }
