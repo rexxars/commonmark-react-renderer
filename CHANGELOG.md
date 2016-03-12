@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [4.1.1] - 2016-03-12
+
+### Changes
+
+- Join sibling text nodes into one text node (Espen Hovlandsdal)
+
 ## [4.0.1] - 2016-02-21
 
 ### Changes
