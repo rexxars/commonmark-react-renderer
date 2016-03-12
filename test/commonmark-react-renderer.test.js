@@ -454,6 +454,10 @@ describe('react-markdown', function() {
         expect(ReactRenderer.uriTransformer).to.be.a('function');
         expect(ReactRenderer.uriTransformer('javascript:alert("foo")')) // eslint-disable-line no-script-url
             .to.equal('x-javascript:alert("foo")');
+
+    it('should reduce sibling text nodes into one text node', function() {
+        var input = 'What does "this" thing turn into?';
+        expect(parse(input).replace(/&quot;/g, '"')).to.equal('<p>What does "this" thing turn into?</p>');
     });
 });
 
