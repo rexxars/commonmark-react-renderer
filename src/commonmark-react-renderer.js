@@ -80,8 +80,20 @@ function addChild(node, child) {
 }
 
 function createElement(tagName, props, children) {
-    var args = [tagName, props].concat(children);
+    var nodeChildren = Array.isArray(children) && children.reduce(reduceChildren, []);
+    var args = [tagName, props].concat(nodeChildren || children);
     return React.createElement.apply(React, args);
+}
+
+function reduceChildren(children, child) {
+    var lastIndex = children.length - 1;
+    if (typeof child === 'string' && typeof children[lastIndex] === 'string') {
+        children[lastIndex] += child;
+    } else {
+        children.push(child);
+    }
+
+    return children;
 }
 
 // For some nodes, we want to include more props than for others

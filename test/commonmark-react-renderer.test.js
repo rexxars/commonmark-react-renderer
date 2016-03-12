@@ -390,6 +390,11 @@ describe('react-markdown', function() {
             parse(input, { renderers: { Heading: null } });
         }).to.throw(Error, /Heading/);
     });
+
+    it('should reduce sibling text nodes into one text node', function() {
+        var input = 'What does "this" thing turn into?';
+        expect(parse(input).replace(/&quot;/g, '"')).to.equal('<p>What does "this" thing turn into?</p>');
+    });
 });
 
 function getRenderer(opts) {
