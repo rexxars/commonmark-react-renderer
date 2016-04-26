@@ -393,7 +393,7 @@ describe('react-markdown', function() {
             }
         }).replace(/&quot;/g, '"')).to.equal([
             '<div class="level-1">Header</div><hr/><p>Paragraph a day...</p>',
-            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n"}</pre>',
+            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n","nodeKey":3}</pre>',
             '<blockquote><p>Foo</p></blockquote>'
         ].join(''));
     });

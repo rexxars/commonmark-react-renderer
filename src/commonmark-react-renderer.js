@@ -22,7 +22,7 @@ var defaultRenderers = {
 
     List: function List(props) {
         var tag = props.type === 'Bullet' ? 'ul' : 'ol';
-        var attrs = { key: props.key };
+        var attrs = { key: props.nodeKey };
 
         if (props.start !== null && props.start !== 1) {
             attrs.start = props.start.toString();
@@ -33,7 +33,7 @@ var defaultRenderers = {
     CodeBlock: function Code(props) {
         var className = props.language && 'language-' + props.language;
         var code = createElement('code', { className: className }, props.literal);
-        return createElement('pre', {key: props.key}, code);
+        return createElement('pre', {key: props.nodeKey}, code);
     },
     Heading: function Heading(props) {
         return createElement('h' + props.level, props, props.children);
@@ -244,6 +244,10 @@ function renderNodes(block) {
         } else {
             var childProps = nodeProps || getNodeProps(node, key, propOptions);
             if (renderer) {
+                childProps = typeof renderer === 'string'
+                    ? childProps
+                    : assign(childProps, {nodeKey: childProps.key});
+
                 addChild(node, React.createElement(renderer, childProps));
             } else if (node.type === 'Text') {
                 addChild(node, node.literal);

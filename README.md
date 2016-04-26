@@ -96,6 +96,7 @@ Pass an object of options to the renderer constructor to configure it. Available
 
 ### Common
 
+* `nodeKey` - *string* A key that can be used by React for the `key` hint
 * `children` - *node* Child nodes of the current node
 * `literal` - *string* A literal representation of the node, where applicable
 * `data-sourcepos` - *string* If `sourcePos` option is set, passed to all types and should be present in all the DOM-representations to signify the source position of this node
