@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [4.1.3] - 2016-04-26
+
+### Changes
+
+- Pass `nodeKey` as prop to complex renderers. Fixes warning in React >= 15 (Espen Hovlandsdal)
+
 ## [4.1.2] - 2016-03-12
 
 ### Changes
