@@ -83,6 +83,12 @@ describe('react-markdown', function() {
         expect(parse(input)).to.equal(expected);
     });
 
+    it('should handle images without special characters in alternative text', function() {
+        var input = 'This is ![a ninja\'s image](/ninja.png).';
+        var expected = '<p>This is <img src="/ninja.png" alt="a ninja&#x27;s image"/>.</p>';
+        expect(parse(input)).to.equal(expected);
+    });
+
     it('should be able to render headers', function() {
         expect(parse('# Awesome')).to.equal('<h1>Awesome</h1>');
         expect(parse('## Awesome')).to.equal('<h2>Awesome</h2>');
