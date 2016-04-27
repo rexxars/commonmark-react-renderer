@@ -77,9 +77,15 @@ describe('react-markdown', function() {
         expect(parse(input)).to.equal(expected);
     });
 
-    it('should handle images without title tags', function() {
+    it('should handle images with title tags', function() {
         var input = 'This is ![an image](/ninja.png "foo bar").';
         var expected = '<p>This is <img src="/ninja.png" title="foo bar" alt="an image"/>.</p>';
+        expect(parse(input)).to.equal(expected);
+    });
+
+    it('should handle images without special characters in alternative text', function() {
+        var input = 'This is ![a ninja\'s image](/ninja.png).';
+        var expected = '<p>This is <img src="/ninja.png" alt="a ninja&#x27;s image"/>.</p>';
         expect(parse(input)).to.equal(expected);
     });
 
