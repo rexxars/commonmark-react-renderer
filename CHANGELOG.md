@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [4.1.4] - 2016-04-27
+
+### Changes
+
+- Fix image alt text when it includes special characters (Ramsay Stirling II)
+
 ## [4.1.3] - 2016-04-26
 
 ### Changes
