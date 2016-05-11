@@ -422,7 +422,7 @@ describe('react-markdown', function() {
         ].join(''));
     });
 
-    it('allows disabling built-in uri filter', function() {
+    it('allows disabling built-in link uri filter', function() {
         var output = parse(xssInput, { transformLinkUri: null });
 
         expect(output).to.equal([
@@ -434,7 +434,7 @@ describe('react-markdown', function() {
         ].join(''));
     });
 
-    it('allows specifying a custom uri filter', function() {
+    it('allows specifying a custom link uri filter', function() {
         var output = parse('[foo](http://snails.r.us/pfft), also [bar](http://foo.bar/)', {
             transformLinkUri: function(uri) {
                 return uri.replace(/snails/g, 'cheetahs');
@@ -443,6 +443,18 @@ describe('react-markdown', function() {
 
         expect(output).to.equal(
             '<p><a href="http://cheetahs.r.us/pfft">foo</a>, also <a href="http://foo.bar/">bar</a></p>'
+        );
+    });
+
+    it('allows specifying a custom image uri filter', function() {
+        var output = parse('![foo](/pfft.png), also ![bar](/baz.jpg)', {
+            transformImageUri: function(uri) {
+                return uri.replace(/pfft.png/g, 'blurp.jpg');
+            }
+        });
+
+        expect(output).to.equal(
+            '<p><img src="/blurp.jpg" alt="foo"/>, also <img src="/baz.jpg" alt="bar"/></p>'
         );
     });
 
