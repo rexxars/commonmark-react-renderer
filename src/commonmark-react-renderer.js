@@ -14,7 +14,6 @@ var getCoreProps = function(props) {
 
 var defaultRenderers = {
     BlockQuote: 'blockquote',
-    Code: 'code',
     Emph: 'em',
     Hardbreak: 'br',
     Image: 'img',
@@ -37,10 +36,13 @@ var defaultRenderers = {
 
         return createElement(tag, attrs, props.children);
     },
-    CodeBlock: function Code(props) {
+    CodeBlock: function CodeBlock(props) {
         var className = props.language && 'language-' + props.language;
         var code = createElement('code', { className: className }, props.literal);
         return createElement('pre', getCoreProps(props), code);
+    },
+    Code: function Code(props) {
+        return createElement('code', getCoreProps(props), props.children);
     },
     Heading: function Heading(props) {
         return createElement('h' + props.level, getCoreProps(props), props.children);
