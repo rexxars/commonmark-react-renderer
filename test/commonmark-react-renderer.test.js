@@ -518,6 +518,11 @@ describe('react-markdown', function() {
         it('should pass no props onto horizontal rules', function() {
             expect(parse('# Foo\n---\nBar')).to.contain('<hr/>');
         });
+
+        it('should pass data sourcepos prop if configured', function() {
+            expect(parse('# Foo\n---\nBar', { sourcePos: true }))
+                .to.contain('<hr data-sourcepos="2:1-2:3"/>');
+        });
     });
 });
 
