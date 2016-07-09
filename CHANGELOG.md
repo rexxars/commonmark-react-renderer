@@ -2,6 +2,16 @@
 
 All notable changes will be documented in this file.
 
+## [4.2.0] - 2016-07-09
+
+### Changes
+
+- Plain DOM-node renderers are now given only their respective props. Fixes warnings when using React >= 15.2 (Espen Hovlandsdal)
+
+### Added
+
+- New `transformImageUri` option allows you to transform URIs for images. (Petri Lehtinen)
+
 ## [4.1.4] - 2016-04-27
 
 ### Changes
