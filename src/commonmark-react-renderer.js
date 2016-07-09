@@ -127,7 +127,7 @@ function getNodeProps(node, key, opts, renderer) {
             props.title = node.title || undef;
             break;
         case 'Image':
-            props.src = node.destination;
+            props.src = opts.transformImageUri ? opts.transformImageUri(node.destination) : node.destination;
             props.title = node.title || undef;
 
             // Commonmark treats image description as children. We just want the text
@@ -169,6 +169,7 @@ function renderNodes(block) {
         escapeHtml: this.escapeHtml,
         skipHtml: this.skipHtml,
         transformLinkUri: this.transformLinkUri,
+        transformImageUri: this.transformImageUri,
         softBreak: softBreak
     };
 
@@ -296,6 +297,11 @@ function ReactRenderer(options) {
         throw new Error('`transformLinkUri` must either be a function, or `null` to disable');
     }
 
+    var imageFilter = opts.transformImageUri;
+    if (typeof imageFilter !== 'undefined' && typeof imageFilter !== 'function') {
+        throw new Error('`transformImageUri` must be a function');
+    }
+
     if (opts.renderers && !isPlainObject(opts.renderers)) {
         throw new Error('`renderers` must be a plain object of `Type`: `Renderer` pairs');
     }
@@ -314,6 +320,7 @@ function ReactRenderer(options) {
         escapeHtml: Boolean(opts.escapeHtml),
         skipHtml: Boolean(opts.skipHtml),
         transformLinkUri: linkFilter,
+        transformImageUri: imageFilter,
         allowNode: opts.allowNode,
         allowedTypes: allowedTypes,
         unwrapDisallowed: Boolean(opts.unwrapDisallowed),
