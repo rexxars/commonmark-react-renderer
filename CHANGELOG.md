@@ -2,6 +2,10 @@
 
 All notable changes will be documented in this file.
 
+## [4.2.3] - 2016-07-09
+
+- Fix regression in passing props to `Code`-nodes (Espen Hovlandsdal)
+
 ## [4.2.2] - 2016-07-09
 
 ### Changes
