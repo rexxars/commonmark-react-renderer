@@ -2,6 +2,10 @@
 
 All notable changes will be documented in this file.
 
+## [4.2.4] - 2016-07-09
+
+- Fix bug where nodes would not be rendered due to duplicate keys (Espen Hovlandsdal)
+
 ## [4.2.3] - 2016-07-09
 
 - Fix regression in passing props to `Code`-nodes (Espen Hovlandsdal)

@@ -96,17 +96,20 @@ function reduceChildren(children, child) {
     return children;
 }
 
+function flattenPosition(pos) {
+    return [
+        pos[0][0], ':', pos[0][1], '-',
+        pos[1][0], ':', pos[1][1]
+    ].map(String).join('');
+}
+
 // For some nodes, we want to include more props than for others
 function getNodeProps(node, key, opts, renderer) {
     var props = { key: key }, undef;
 
     // `sourcePos` is true if the user wants source information (line/column info from markdown source)
     if (opts.sourcePos && node.sourcepos) {
-        var pos = node.sourcepos;
-        props['data-sourcepos'] = [
-            pos[0][0], ':', pos[0][1], '-',
-            pos[1][0], ':', pos[1][1]
-        ].map(String).join('');
+        props['data-sourcepos'] = flattenPosition(node.sourcepos);
     }
 
     switch (node.type) {
@@ -164,6 +167,18 @@ function getNodeProps(node, key, opts, renderer) {
     return props;
 }
 
+function getPosition(node) {
+    if (!node) {
+        return null;
+    }
+
+    if (node.sourcepos) {
+        return flattenPosition(node.sourcepos);
+    }
+
+    return getPosition(node.parent);
+}
+
 function renderNodes(block) {
     var walker = block.walker();
 
@@ -183,16 +198,22 @@ function renderNodes(block) {
         softBreak: softBreak
     };
 
-    var e, node, entering, leaving, doc, key, nodeProps;
+    var e, node, entering, leaving, doc, key, nodeProps, prevPos, prevIndex = 0;
     while ((e = walker.next())) {
+        var pos = getPosition(e.node.sourcepos ? e.node : e.node.parent);
+        if (prevPos === pos) {
+            key = pos + prevIndex;
+            prevIndex++;
+        } else {
+            key = pos;
+            prevIndex = 0;
+        }
+
+        prevPos = pos;
         entering = e.entering;
         leaving = !entering;
         node = e.node;
-        key = !e.node.prev ? 0 : e.node.prev.reactKey + 1;
         nodeProps = null;
-
-        // Assigning a key to the node
-        node.reactKey = key;
 
         // If we have not assigned a document yet, assume the current node is just that
         if (!doc) {

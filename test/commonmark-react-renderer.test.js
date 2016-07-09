@@ -399,7 +399,7 @@ describe('react-markdown', function() {
             }
         }).replace(/&quot;/g, '"')).to.equal([
             '<div class="level-1">Header</div><hr/><p>Paragraph a day...</p>',
-            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n","nodeKey":3}</pre>',
+            '<pre>{"language":"js","literal":"var keepTheDoctor = \\"away\\";\\n","nodeKey":"4:1-6:27"}</pre>',
             '<blockquote><p>Foo</p></blockquote>'
         ].join(''));
     });
@@ -477,6 +477,20 @@ describe('react-markdown', function() {
     it('should reduce sibling text nodes into one text node', function() {
         var input = 'What does "this" thing turn into?';
         expect(parse(input).replace(/&quot;/g, '"')).to.equal('<p>What does "this" thing turn into?</p>');
+    });
+
+    it('should render sub-lists when the parent list item has inline formatting', function() {
+        var input = [
+            '* If you escape or skip the HTML, no `dangerouslySetInnerHTML` is used!',
+            '  * Yay',
+            '  * More things',
+            '* Root level thing'
+        ].join('\n') + '\n';
+
+        expect(parse(input)).to.equal([
+            '<ul><li>If you escape or skip the HTML, no <code>dangerouslySetInnerHTML</code> is used!',
+            '<ul><li>Yay</li><li>More things</li></ul></li><li>Root level thing</li></ul>'
+        ].join(''));
     });
 
     describe('should pass datapos and key onto children', function() {
