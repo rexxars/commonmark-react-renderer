@@ -36,7 +36,7 @@ var defaultRenderers = {
         return createElement('pre', {key: props.nodeKey}, code);
     },
     Heading: function Heading(props) {
-        return createElement('h' + props.level, props, props.children);
+        return createElement('h' + props.level, null, props.children);
     },
 
     Text: null,
@@ -88,8 +88,8 @@ function reduceChildren(children, child) {
 }
 
 // For some nodes, we want to include more props than for others
-function getNodeProps(node, key, opts, undef) {
-    var props = { key: key };
+function getNodeProps(node, key, opts, renderer) {
+    var props = { key: key }, undef;
 
     // `sourcePos` is true if the user wants source information (line/column info from markdown source)
     if (opts.sourcePos && node.sourcepos) {
@@ -142,7 +142,9 @@ function getNodeProps(node, key, opts, undef) {
         default:
     }
 
-    props.literal = node.literal;
+    if (typeof renderer !== 'string') {
+        props.literal = node.literal;
+    }
 
     var children = props.children || (node.react && node.react.children);
     if (Array.isArray(children)) {
@@ -207,10 +209,11 @@ function renderNodes(block) {
 
         // Do we have a user-defined function?
         var isCompleteParent = node.isContainer && leaving;
+        var renderer = this.renderers[node.type];
         if (this.allowNode && (isCompleteParent || !node.isContainer)) {
             var nodeChildren = isCompleteParent ? node.react.children : [];
 
-            nodeProps = getNodeProps(node, key, propOptions);
+            nodeProps = getNodeProps(node, key, propOptions, renderer);
             disallowedByUser = !this.allowNode({
                 type: node.type,
                 renderer: this.renderers[node.type],
@@ -227,7 +230,6 @@ function renderNodes(block) {
             continue;
         }
 
-        var renderer = this.renderers[node.type];
         var isSimpleNode = node.type === 'Text' || node.type === 'Softbreak';
         if (typeof renderer !== 'function' && !isSimpleNode && typeof renderer !== 'string') {
             throw new Error(
@@ -242,7 +244,7 @@ function renderNodes(block) {
                 children: []
             };
         } else {
-            var childProps = nodeProps || getNodeProps(node, key, propOptions);
+            var childProps = nodeProps || getNodeProps(node, key, propOptions, renderer);
             if (renderer) {
                 childProps = typeof renderer === 'string'
                     ? childProps

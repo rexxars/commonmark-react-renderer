@@ -466,6 +466,64 @@ describe('react-markdown', function() {
         var input = 'What does "this" thing turn into?';
         expect(parse(input).replace(/&quot;/g, '"')).to.equal('<p>What does "this" thing turn into?</p>');
     });
+
+    describe('should only pass necessary props onto plain dom element renderers', function() {
+        it('should pass only children onto blockquote', function() {
+            expect(parse('> Foo\n> Bar\n> Baz\n')).to.contain('<blockquote><p>Foo');
+        });
+
+        it('should pass only children onto inline code', function() {
+            expect(parse('`var foo = bar`')).to.contain('<code>var foo = bar</code>');
+        });
+
+        it('should pass children and className onto block code', function() {
+            expect(parse('```js\nvar foo = "bar"\n```')).to.contain('<code class="language-js">');
+        });
+
+        it('should pass only children onto em', function() {
+            expect(parse('react is _clever_, amirite?')).to.contain('<em>clever</em>');
+        });
+
+        it('should pass nothing onto a hardbreak', function() {
+            expect(parse('React is cool  \nAnd so is markdown. Kinda.')).to.contain('<br/>');
+        });
+
+        it('should pass alt, title and src onto img', function() {
+            var input = 'This is ![an image](/ninja.png "foo bar").';
+            var expected = '<img src="/ninja.png" title="foo bar" alt="an image"/>';
+            expect(parse(input)).to.contain(expected);
+        });
+
+        it('should pass no props onto list items', function() {
+            expect(parse('* Foo\n* Bar\n')).to.contain('<ul><li>');
+        });
+
+        it('should pass no props onto list items', function() {
+            expect(parse('* Foo\n* Bar\n')).to.contain('<ul><li>');
+        });
+
+        it('should pass children, href and title onto links', function() {
+            var input = 'A [link](http://vaffel.ninja "Foo") to the Ninja.';
+            expect(parse(input)).to.contain('<a href="http://vaffel.ninja" title="Foo">link</a>');
+        });
+
+        it('should pass only children onto paragraphs', function() {
+            expect(parse('Foo bar')).to.contain('<p>');
+        });
+
+        it('should pass only children onto strong', function() {
+            expect(parse('**React** strongly')).to.contain('<strong>React</strong>');
+        });
+
+        it('should pass no props onto horizontal rules', function() {
+            expect(parse('# Foo\n---\nBar')).to.contain('<hr/>');
+        });
+
+        it('should pass data sourcepos prop if configured', function() {
+            expect(parse('# Foo\n---\nBar', { sourcePos: true }))
+                .to.contain('<hr data-sourcepos="2:1-2:3"/>');
+        });
+    });
 });
 
 function getRenderer(opts) {
