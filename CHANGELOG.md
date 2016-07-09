@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [4.2.2] - 2016-07-09
+
+### Changes
+
+- Give `Code` renderers an `inline` property that is always true, allowing reuse of renderer for `CodeBlock` and `Code` (Espen Hovlandsdal)
+
 ## [4.2.1] - 2016-07-09
 
 ### Changes

@@ -67,6 +67,7 @@ Pass an object of options to the renderer constructor to configure it. Available
 ### Code
 
 * `literal` - *string* The string value of the inline code
+* `inline` - *boolean* Always true. Present to allow reuse of the same renderer for both `CodeBlock` and `Code`.
 
 ### Heading
 

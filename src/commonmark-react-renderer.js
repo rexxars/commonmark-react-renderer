@@ -122,6 +122,7 @@ function getNodeProps(node, key, opts, renderer) {
             break;
         case 'Code':
             props.children = node.literal;
+            props.inline = true;
             break;
         case 'Heading':
             props.level = node.level;
