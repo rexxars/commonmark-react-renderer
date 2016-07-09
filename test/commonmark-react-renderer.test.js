@@ -479,6 +479,24 @@ describe('react-markdown', function() {
         expect(parse(input).replace(/&quot;/g, '"')).to.equal('<p>What does "this" thing turn into?</p>');
     });
 
+    describe('should pass datapos and key onto children', function() {
+        it('lists', function() {
+            expect(parse('3. Foo\n4. Bar', {sourcePos: true}))
+                .to.contain('<ol data-sourcepos="1:1-2:6" start="3">');
+        });
+
+        it('codeblocks', function() {
+            expect(parse('```js\nvar foo = bar;\n```', {sourcePos: true}))
+                .to.contain('<pre data-sourcepos="1:1-3:14">');
+        });
+
+        it('headings', function() {
+            expect(parse('# Foo', {sourcePos: true})).to.contain('<h1 data-sourcepos="1:1-1:5">');
+            expect(parse('## Foo', {sourcePos: true})).to.contain('<h2 data-sourcepos="1:1-1:6">');
+            expect(parse('### Foo', {sourcePos: true})).to.contain('<h3 data-sourcepos="1:1-1:7">');
+        });
+    });
+
     describe('should only pass necessary props onto plain dom element renderers', function() {
         it('should pass only children onto blockquote', function() {
             expect(parse('> Foo\n> Bar\n> Baz\n')).to.contain('<blockquote><p>Foo');

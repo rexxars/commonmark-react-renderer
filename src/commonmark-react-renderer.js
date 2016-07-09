@@ -5,6 +5,13 @@ var assign = require('lodash.assign');
 var isPlainObject = require('lodash.isplainobject');
 var xssFilters = require('xss-filters');
 
+var getCoreProps = function(props) {
+    return {
+        'key': props.nodeKey,
+        'data-sourcepos': props['data-sourcepos']
+    };
+};
+
 var defaultRenderers = {
     BlockQuote: 'blockquote',
     Code: 'code',
@@ -22,7 +29,7 @@ var defaultRenderers = {
 
     List: function List(props) {
         var tag = props.type === 'Bullet' ? 'ul' : 'ol';
-        var attrs = { key: props.nodeKey };
+        var attrs = getCoreProps(props);
 
         if (props.start !== null && props.start !== 1) {
             attrs.start = props.start.toString();
@@ -33,10 +40,10 @@ var defaultRenderers = {
     CodeBlock: function Code(props) {
         var className = props.language && 'language-' + props.language;
         var code = createElement('code', { className: className }, props.literal);
-        return createElement('pre', {key: props.nodeKey}, code);
+        return createElement('pre', getCoreProps(props), code);
     },
     Heading: function Heading(props) {
-        return createElement('h' + props.level, null, props.children);
+        return createElement('h' + props.level, getCoreProps(props), props.children);
     },
 
     Text: null,

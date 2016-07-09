@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [4.2.1] - 2016-07-09
+
+### Changes
+
+- Fix bug where lists, codeblocks and headings would not get passed `sourcepos` prop (Espen Hovlandsdal)
+
 ## [4.2.0] - 2016-07-09
 
 ### Changes
