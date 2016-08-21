@@ -12,7 +12,7 @@
   "scripts": {
     "coverage": "istanbul cover node_modules/.bin/_mocha -- --reporter spec",
     "lint": "eslint .",
-    "prepublish": "npm prune && npm test",
+    "prepublish": "in-publish && npm prune && npm test || not-in-publish",
     "posttest": "npm run lint",
     "test": "mocha --reporter spec",
     "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- --reporter spec"
@@ -25,7 +25,7 @@
   "license": "MIT",
   "devDependencies": {
     "chai": "^3.4.0",
-    "commonmark": "^0.24.0",
+    "commonmark": "^0.26.0",
     "eslint": "^1.7.3",
     "eslint-config-vaffel": "^3.0.0",
     "eslint-plugin-react": "^3.6.3",
@@ -36,11 +36,13 @@
   },
   "peerDependencies": {
     "react": ">=0.14.0",
-    "commonmark": "^0.24.0"
+    "commonmark": "^0.26.0 || ^0.24.0"
   },
   "dependencies": {
+    "in-publish": "^2.0.0",
     "lodash.assign": "^4.0.1",
     "lodash.isplainobject": "^4.0.0",
+    "pascalcase": "^0.1.1",
     "xss-filters": "^1.2.6"
   }
 }

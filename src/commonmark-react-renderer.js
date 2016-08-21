@@ -4,30 +4,33 @@ var React = require('react');
 var assign = require('lodash.assign');
 var isPlainObject = require('lodash.isplainobject');
 var xssFilters = require('xss-filters');
+var pascalCase = require('pascalcase');
 
-var getCoreProps = function(props) {
-    return {
-        'key': props.nodeKey,
-        'data-sourcepos': props['data-sourcepos']
-    };
+var typeAliases = {
+    blockquote: 'block_quote',
+    thematicbreak: 'thematic_break',
+    htmlblock: 'html_block',
+    htmlinline: 'html_inline',
+    codeblock: 'code_block',
+    hardbreak: 'linebreak'
 };
 
 var defaultRenderers = {
-    BlockQuote: 'blockquote',
-    Emph: 'em',
-    Hardbreak: 'br',
-    Image: 'img',
-    Item: 'li',
-    Link: 'a',
-    Paragraph: 'p',
-    Strong: 'strong',
-    ThematicBreak: 'hr',
+    block_quote: 'blockquote', // eslint-disable-line camelcase
+    emph: 'em',
+    linebreak: 'br',
+    image: 'img',
+    item: 'li',
+    link: 'a',
+    paragraph: 'p',
+    strong: 'strong',
+    thematic_break: 'hr', // eslint-disable-line camelcase
 
-    HtmlBlock: HtmlRenderer,
-    HtmlInline: HtmlRenderer,
+    html_block: HtmlRenderer, // eslint-disable-line camelcase
+    html_inline: HtmlRenderer, // eslint-disable-line camelcase
 
-    List: function List(props) {
-        var tag = props.type === 'Bullet' ? 'ul' : 'ol';
+    list: function List(props) {
+        var tag = props.type.toLowerCase() === 'bullet' ? 'ul' : 'ol';
         var attrs = getCoreProps(props);
 
         if (props.start !== null && props.start !== 1) {
@@ -36,21 +39,44 @@ var defaultRenderers = {
 
         return createElement(tag, attrs, props.children);
     },
-    CodeBlock: function CodeBlock(props) {
+    code_block: function CodeBlock(props) { // eslint-disable-line camelcase
         var className = props.language && 'language-' + props.language;
         var code = createElement('code', { className: className }, props.literal);
         return createElement('pre', getCoreProps(props), code);
     },
-    Code: function Code(props) {
+    code: function Code(props) {
         return createElement('code', getCoreProps(props), props.children);
     },
-    Heading: function Heading(props) {
+    heading: function Heading(props) {
         return createElement('h' + props.level, getCoreProps(props), props.children);
     },
 
-    Text: null,
-    Softbreak: null
+    text: null,
+    softbreak: null
 };
+
+var coreTypes = Object.keys(defaultRenderers);
+
+function getCoreProps(props) {
+    return {
+        'key': props.nodeKey,
+        'data-sourcepos': props['data-sourcepos']
+    };
+}
+
+function normalizeTypeName(typeName) {
+    var norm = typeName.toLowerCase();
+    var type = typeAliases[norm] || norm;
+    return typeof defaultRenderers[type] !== 'undefined' ? type : typeName;
+}
+
+function normalizeRenderers(renderers) {
+    return Object.keys(renderers || {}).reduce(function(normalized, type) {
+        var norm = normalizeTypeName(type);
+        normalized[norm] = renderers[type];
+        return normalized;
+    }, {});
+}
 
 function HtmlRenderer(props) {
     var nodeProps = props.escapeHtml ? {} : { dangerouslySetInnerHTML: { __html: props.literal } };
@@ -65,7 +91,7 @@ function isGrandChildOfList(node) {
     var grandparent = node.parent.parent;
     return (
         grandparent &&
-        grandparent.type === 'List' &&
+        grandparent.type.toLowerCase() === 'list' &&
         grandparent.listTight
     );
 }
@@ -112,34 +138,36 @@ function getNodeProps(node, key, opts, renderer) {
         props['data-sourcepos'] = flattenPosition(node.sourcepos);
     }
 
-    switch (node.type) {
-        case 'HtmlInline':
-        case 'HtmlBlock':
-            props.isBlock = node.type === 'HtmlBlock';
+    var type = normalizeTypeName(node.type);
+
+    switch (type) {
+        case 'html_inline':
+        case 'html_block':
+            props.isBlock = type === 'html_block';
             props.escapeHtml = opts.escapeHtml;
             props.skipHtml = opts.skipHtml;
             break;
-        case 'CodeBlock':
+        case 'code_block':
             var codeInfo = node.info ? node.info.split(/ +/) : [];
             if (codeInfo.length > 0 && codeInfo[0].length > 0) {
                 props.language = codeInfo[0];
             }
             break;
-        case 'Code':
+        case 'code':
             props.children = node.literal;
             props.inline = true;
             break;
-        case 'Heading':
+        case 'heading':
             props.level = node.level;
             break;
-        case 'Softbreak':
+        case 'softbreak':
             props.softBreak = opts.softBreak;
             break;
-        case 'Link':
+        case 'link':
             props.href = opts.transformLinkUri ? opts.transformLinkUri(node.destination) : node.destination;
             props.title = node.title || undef;
             break;
-        case 'Image':
+        case 'image':
             props.src = opts.transformImageUri ? opts.transformImageUri(node.destination) : node.destination;
             props.title = node.title || undef;
 
@@ -147,7 +175,7 @@ function getNodeProps(node, key, opts, renderer) {
             props.alt = node.react.children.join('');
             node.react.children = undef;
             break;
-        case 'List':
+        case 'list':
             props.start = node.listStart;
             props.type = node.listType;
             props.tight = node.listTight;
@@ -198,7 +226,7 @@ function renderNodes(block) {
         softBreak: softBreak
     };
 
-    var e, node, entering, leaving, doc, key, nodeProps, prevPos, prevIndex = 0;
+    var e, node, entering, leaving, type, doc, key, nodeProps, prevPos, prevIndex = 0;
     while ((e = walker.next())) {
         var pos = getPosition(e.node.sourcepos ? e.node : e.node.parent);
         if (prevPos === pos) {
@@ -213,6 +241,7 @@ function renderNodes(block) {
         entering = e.entering;
         leaving = !entering;
         node = e.node;
+        type = normalizeTypeName(node.type);
         nodeProps = null;
 
         // If we have not assigned a document yet, assume the current node is just that
@@ -226,29 +255,29 @@ function renderNodes(block) {
         }
 
         // In HTML, we don't want paragraphs inside of list items
-        if (node.type === 'Paragraph' && isGrandChildOfList(node)) {
+        if (type === 'paragraph' && isGrandChildOfList(node)) {
             continue;
         }
 
         // If we're skipping HTML nodes, don't keep processing
-        if (this.skipHtml && (node.type === 'HtmlBlock' || node.type === 'HtmlInline')) {
+        if (this.skipHtml && (type === 'html_block' || type === 'html_inline')) {
             continue;
         }
 
         var isDocument = node === doc;
-        var disallowedByConfig = this.allowedTypes.indexOf(node.type) === -1;
+        var disallowedByConfig = this.allowedTypes.indexOf(type) === -1;
         var disallowedByUser = false;
 
         // Do we have a user-defined function?
         var isCompleteParent = node.isContainer && leaving;
-        var renderer = this.renderers[node.type];
+        var renderer = this.renderers[type];
         if (this.allowNode && (isCompleteParent || !node.isContainer)) {
             var nodeChildren = isCompleteParent ? node.react.children : [];
 
             nodeProps = getNodeProps(node, key, propOptions, renderer);
             disallowedByUser = !this.allowNode({
-                type: node.type,
-                renderer: this.renderers[node.type],
+                type: pascalCase(type),
+                renderer: this.renderers[type],
                 props: nodeProps,
                 children: nodeChildren
             });
@@ -262,10 +291,10 @@ function renderNodes(block) {
             continue;
         }
 
-        var isSimpleNode = node.type === 'Text' || node.type === 'Softbreak';
+        var isSimpleNode = type === 'text' || type === 'softbreak';
         if (typeof renderer !== 'function' && !isSimpleNode && typeof renderer !== 'string') {
             throw new Error(
-                'Renderer for type `' + node.type + '` not defined or is not renderable'
+                'Renderer for type `' + pascalCase(node.type) + '` not defined or is not renderable'
             );
         }
 
@@ -283,9 +312,9 @@ function renderNodes(block) {
                     : assign(childProps, {nodeKey: childProps.key});
 
                 addChild(node, React.createElement(renderer, childProps));
-            } else if (node.type === 'Text') {
+            } else if (type === 'text') {
                 addChild(node, node.literal);
-            } else if (node.type === 'Softbreak') {
+            } else if (type === 'softbreak') {
                 addChild(node, softBreak);
             }
         }
@@ -337,17 +366,18 @@ function ReactRenderer(options) {
         throw new Error('`renderers` must be a plain object of `Type`: `Renderer` pairs');
     }
 
-    var allowedTypes = opts.allowedTypes || ReactRenderer.types;
+    var allowedTypes = (opts.allowedTypes && opts.allowedTypes.map(normalizeTypeName)) || coreTypes;
     if (opts.disallowedTypes) {
+        var disallowed = opts.disallowedTypes.map(normalizeTypeName);
         allowedTypes = allowedTypes.filter(function filterDisallowed(type) {
-            return opts.disallowedTypes.indexOf(type) === -1;
+            return disallowed.indexOf(type) === -1;
         });
     }
 
     return {
         sourcePos: Boolean(opts.sourcePos),
         softBreak: opts.softBreak || '\n',
-        renderers: assign({}, defaultRenderers, opts.renderers),
+        renderers: assign({}, defaultRenderers, normalizeRenderers(opts.renderers)),
         escapeHtml: Boolean(opts.escapeHtml),
         skipHtml: Boolean(opts.skipHtml),
         transformLinkUri: linkFilter,
@@ -359,8 +389,11 @@ function ReactRenderer(options) {
     };
 }
 
-ReactRenderer.types = Object.keys(defaultRenderers);
-ReactRenderer.renderers = defaultRenderers;
 ReactRenderer.uriTransformer = defaultLinkUriFilter;
+ReactRenderer.types = coreTypes.map(pascalCase);
+ReactRenderer.renderers = coreTypes.reduce(function(renderers, type) {
+    renderers[pascalCase(type)] = defaultRenderers[type];
+    return renderers;
+}, {});
 
 module.exports = ReactRenderer;
