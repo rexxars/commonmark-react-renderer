@@ -2,27 +2,35 @@
 
 All notable changes will be documented in this file.
 
-## [4.2.4] - 2016-07-09
+## 4.3.1 - 2016-08-23
+
+- Update dependencies to latest versions (Espen Hovlandsdal)
+
+## 4.3.0 - 2016-08-23
+
+- Enable Commonmark.js 0.26 compatibility (Espen Hovlandsdal)
+
+## 4.2.4 - 2016-07-09
 
 - Fix bug where nodes would not be rendered due to duplicate keys (Espen Hovlandsdal)
 
-## [4.2.3] - 2016-07-09
+## 4.2.3 - 2016-07-09
 
 - Fix regression in passing props to `Code`-nodes (Espen Hovlandsdal)
 
-## [4.2.2] - 2016-07-09
+## 4.2.2 - 2016-07-09
 
 ### Changes
 
 - Give `Code` renderers an `inline` property that is always true, allowing reuse of renderer for `CodeBlock` and `Code` (Espen Hovlandsdal)
 
-## [4.2.1] - 2016-07-09
+## 4.2.1 - 2016-07-09
 
 ### Changes
 
 - Fix bug where lists, codeblocks and headings would not get passed `sourcepos` prop (Espen Hovlandsdal)
 
-## [4.2.0] - 2016-07-09
+## 4.2.0 - 2016-07-09
 
 ### Changes
 
@@ -32,57 +40,57 @@ All notable changes will be documented in this file.
 
 - New `transformImageUri` option allows you to transform URIs for images. (Petri Lehtinen)
 
-## [4.1.4] - 2016-04-27
+## 4.1.4 - 2016-04-27
 
 ### Changes
 
 - Fix image alt text when it includes special characters (Ramsay Stirling II)
 
-## [4.1.3] - 2016-04-26
+## 4.1.3 - 2016-04-26
 
 ### Changes
 
 - Pass `nodeKey` as prop to complex renderers. Fixes warning in React >= 15 (Espen Hovlandsdal)
 
-## [4.1.2] - 2016-03-12
+## 4.1.2 - 2016-03-12
 
 ### Changes
 
 - Also join sibling nodes within paragraphs and similar (Espen Hovlandsdal)
 
-## [4.1.1] - 2016-03-12
+## 4.1.1 - 2016-03-12
 
 ### Changes
 
 - Join sibling text nodes into one text node (Espen Hovlandsdal)
 
-## [4.0.1] - 2016-02-21
+## 4.0.1 - 2016-02-21
 
 ### Changes
 
 - Use strings as renderers in simple cases (Glen Mailer)
 - Set keys on lists and code blocks (Guillaume Plique)
 
-## [4.0.0] - 2016-02-21
+## 4.0.0 - 2016-02-21
 
 ### Changes
 
 - **Breaking change**: Inline HTML nodes are now wrapped in a `<span>`, block HTML nodes in `<div>`. This is necessary to properly support custom renderers.
 
-## [3.0.2] - 2016-02-21
+## 3.0.2 - 2016-02-21
 
 ### Changes
 
 - The default URI transformer no longer applies double URI-encoding.
 
-## [3.0.1] - 2016-02-21
+## 3.0.1 - 2016-02-21
 
 ### Added
 
 - The default URI transformer is now exposed on the `uriTransformer` property of the renderer, allowing it to be reused.
 - Documentation for `transformLinkUri`-option.
 
-## [3.0.0] - 2016-02-21
+## 3.0.0 - 2016-02-21
 
 ### Changes
 
@@ -98,42 +106,38 @@ All notable changes will be documented in this file.
 - New `unwrapDisallowed` option allows you to select if the contents of a disallowed node should be "unwrapped" (placed into the disallowed node position). For instance, setting this option to true and disallowing a link would still render the text of the link, instead of the whole link node and all it's children disappearing. (Espen Hovlandsdal)
 - New `transformLinkUri` option allows you to transform URIs in links. By default, an XSS-filter is used, but you could also use this for use cases like transforming absolute to relative URLs, or similar. (Espen Hovlandsdal)
 
-## [2.2.2] - 2016-01-22
+## 2.2.2 - 2016-01-22
 
 ### Added
 
 - Provide index-based keys to generated elements to silent warnings from React (Guillaume Plique)
 
-## [2.2.1] - 2016-01-22
+## 2.2.1 - 2016-01-22
 
 ### Changed
 
 - Upgrade commonmark to latest version (Guillaume Plique)
 
-## [2.2.0] - 2015-12-11
+## 2.2.0 - 2015-12-11
 
 ### Added
 
 - Allow passing `allowNode` - a function which determines if a given node should be allowed (Espen Hovlandsdal)
 
-## [2.1.0] - 2015-11-20
+## 2.1.0 - 2015-11-20
 
 ### Added
 
 - Add support for specifying which types should be allowed - `allowTypes`/`disallowedTypes` (Espen Hovlandsdal)
 
-## [2.0.2] - 2015-11-19
+## 2.0.2 - 2015-11-19
 
 ### Added
 
 - Add support for hard linebreaks (marlonbaeten)
 
-## [2.0.1] - 2015-10-22
+## 2.0.1 - 2015-10-22
 
 ### Changed
 
 - Peer dependency for React was (incorrectly) set to >= 0.14.0, when 0.13.3 was supported.
-
-[2.1.0]: https://github.com/rexxars/commonmark-react-renderer/compare/v2.0.2...v2.1.0
-[2.0.2]: https://github.com/rexxars/commonmark-react-renderer/compare/v2.0.1...v2.0.2
-[2.0.1]: https://github.com/rexxars/commonmark-react-renderer/compare/90b2489a515bca26d0d58954ab098a48bedee406...v2.0.1
