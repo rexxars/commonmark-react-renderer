@@ -166,6 +166,9 @@ function getNodeProps(node, key, opts, renderer) {
         case 'link':
             props.href = opts.transformLinkUri ? opts.transformLinkUri(node.destination) : node.destination;
             props.title = node.title || undef;
+            if (opts.linkTarget) {
+                props.target = opts.linkTarget;
+            }
             break;
         case 'image':
             props.src = opts.transformImageUri ? opts.transformImageUri(node.destination) : node.destination;
@@ -223,7 +226,8 @@ function renderNodes(block) {
         skipHtml: this.skipHtml,
         transformLinkUri: this.transformLinkUri,
         transformImageUri: this.transformImageUri,
-        softBreak: softBreak
+        softBreak: softBreak,
+        linkTarget: this.linkTarget
     };
 
     var e, node, entering, leaving, type, doc, key, nodeProps, prevPos, prevIndex = 0;
@@ -385,7 +389,8 @@ function ReactRenderer(options) {
         allowNode: opts.allowNode,
         allowedTypes: allowedTypes,
         unwrapDisallowed: Boolean(opts.unwrapDisallowed),
-        render: renderNodes
+        render: renderNodes,
+        linkTarget: opts.linkTarget || false
     };
 }
 
