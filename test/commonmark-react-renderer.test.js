@@ -551,6 +551,13 @@ describe('react-markdown', function() {
             expect(parse(input)).to.contain('<a href="http://vaffel.ninja" title="Foo">link</a>');
         });
 
+        it('should insert the target tag if present in configuration', function() {
+            var input = 'Please go to my [link](http://vaffel.ninja)';
+            var target = '_blank';
+            var expected = '<p>Please go to my <a href="http://vaffel.ninja" target="_blank">link</a></p>';
+            expect(parse(input, { linkTarget: target })).to.equal(expected);
+        });
+
         it('should pass only children onto paragraphs', function() {
             expect(parse('Foo bar')).to.contain('<p>');
         });
