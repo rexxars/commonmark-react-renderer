@@ -166,6 +166,7 @@ function getNodeProps(node, key, opts, renderer) {
         case 'link':
             props.href = opts.transformLinkUri ? opts.transformLinkUri(node.destination) : node.destination;
             props.title = node.title || undef;
+            props.onClick = opts.onLinkClick || undef;
             if (opts.linkTarget) {
                 props.target = opts.linkTarget;
             }
@@ -227,7 +228,8 @@ function renderNodes(block) {
         transformLinkUri: this.transformLinkUri,
         transformImageUri: this.transformImageUri,
         softBreak: softBreak,
-        linkTarget: this.linkTarget
+        linkTarget: this.linkTarget,
+        onLinkClick: this.onLinkClick,
     };
 
     var e, node, entering, leaving, type, doc, key, nodeProps, prevPos, prevIndex = 0;
@@ -361,6 +363,11 @@ function ReactRenderer(options) {
         throw new Error('`transformLinkUri` must either be a function, or `null` to disable');
     }
 
+    var linkClick = opts.onLinkClick;
+    if (typeof linkClick !== 'undefined' && typeof linkClick !== 'function') {
+        throw new Error('`onLinkClick` must be a function');
+    }
+
     var imageFilter = opts.transformImageUri;
     if (typeof imageFilter !== 'undefined' && typeof imageFilter !== 'function') {
         throw new Error('`transformImageUri` must be a function');
@@ -390,7 +397,8 @@ function ReactRenderer(options) {
         allowedTypes: allowedTypes,
         unwrapDisallowed: Boolean(opts.unwrapDisallowed),
         render: renderNodes,
-        linkTarget: opts.linkTarget || false
+        linkTarget: opts.linkTarget || false,
+        onLinkClick: linkClick
     };
 }
 
