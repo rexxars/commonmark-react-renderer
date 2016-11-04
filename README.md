@@ -83,7 +83,7 @@ Pass an object of options to the renderer constructor to configure it. Available
 
 * `href` - *string* URL for the link
 * `title` - *string* Title for the link, if any
-* `children* - *node* One or more child nodes for the link
+* `children` - *node* One or more child nodes for the link
 
 ### Image
 
