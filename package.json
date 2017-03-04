@@ -29,6 +29,7 @@
     "eslint": "^1.7.3",
     "eslint-config-vaffel": "^3.0.0",
     "eslint-plugin-react": "^3.6.3",
+    "in-publish": "^2.0.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.0.2",
     "react": "^15.3.1",
@@ -39,7 +40,6 @@
     "commonmark": "^0.27.0 || ^0.26.0 || ^0.24.0"
   },
   "dependencies": {
-    "in-publish": "^2.0.0",
     "lodash.assign": "^4.2.0",
     "lodash.isplainobject": "^4.0.6",
     "pascalcase": "^0.1.1",
