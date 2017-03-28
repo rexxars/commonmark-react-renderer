@@ -151,6 +151,7 @@ function getNodeProps(node, key, opts, renderer) {
             var codeInfo = node.info ? node.info.split(/ +/) : [];
             if (codeInfo.length > 0 && codeInfo[0].length > 0) {
                 props.language = codeInfo[0];
+                props.codeinfo = codeInfo;
             }
             break;
         case 'code':
