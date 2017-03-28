@@ -55,6 +55,8 @@ Pass an object of options to the renderer constructor to configure it. Available
 
 ### HtmlInline / HtmlBlock
 
+**Note**: Inline HTML is [currently broken](https://github.com/rexxars/commonmark-react-renderer/issues/9)
+
 * `isBlock` - *boolean* `true` if type is `HtmlBlock`, `false` otherwise
 * `escapeHtml` - *boolean* Same as renderer option, see above
 * `skipHtml` - *boolean* Same as renderer option, see above
