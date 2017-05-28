@@ -2,6 +2,17 @@
 
 All notable changes will be documented in this file.
 
+## 4.3.3 - 2017-05-28
+
+- Expose all of codeinfo to CodeBlock renderer (Tauren Mills)
+- Include className in core props (Espen Hovlandsdal)
+
+## 4.3.2 - 2016-12-08
+
+- Add `linkTarget` prop to optionally add a `target` attribute on links (James Simpson)
+- Fix typo in readme (Chase Ricketts)
+- Allow using Commonmark 0.27 (Lukas Geiger)
+
 ## 4.3.1 - 2016-08-23
 
 - Update dependencies to latest versions (Espen Hovlandsdal)
