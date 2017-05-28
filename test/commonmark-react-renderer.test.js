@@ -399,7 +399,8 @@ describe('react-markdown', function() {
             }
         }).replace(/&quot;/g, '"')).to.equal([
             '<div class="level-1">Header</div><hr/><p>Paragraph a day...</p>',
-            '<pre>{"language":"js","codeinfo":["js"],"literal":"var keepTheDoctor = \\"away\\";\\n","nodeKey":"4:1-6:27"}</pre>',
+            '<pre>{"language":"js","codeinfo":["js"],"literal":',
+            '"var keepTheDoctor = \\"away\\";\\n","nodeKey":"4:1-6:27"}</pre>',
             '<blockquote><p>Foo</p></blockquote>'
         ].join(''));
     });
