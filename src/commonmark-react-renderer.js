@@ -217,20 +217,13 @@ function getPosition(node) {
 function renderNodes(block) {
     var walker = block.walker();
 
-    // Softbreaks are usually treated as newlines, but in HTML we might want explicit linebreaks
-    var softBreak = (
-        this.softBreak === 'br' ?
-        React.createElement('br') :
-        this.softBreak
-    );
-
     var propOptions = {
         sourcePos: this.sourcePos,
         escapeHtml: this.escapeHtml,
         skipHtml: this.skipHtml,
         transformLinkUri: this.transformLinkUri,
         transformImageUri: this.transformImageUri,
-        softBreak: softBreak,
+        softBreak: this.softBreak,
         linkTarget: this.linkTarget
     };
 
@@ -323,6 +316,12 @@ function renderNodes(block) {
             } else if (type === 'text') {
                 addChild(node, node.literal);
             } else if (type === 'softbreak') {
+                // Softbreaks are usually treated as newlines, but in HTML we might want explicit linebreaks
+                var softBreak = (
+                    this.softBreak === 'br' ?
+                    React.createElement('br', {key: key}) :
+                    this.softBreak
+                );
                 addChild(node, softBreak);
             }
         }
