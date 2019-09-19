@@ -58,11 +58,25 @@ var defaultRenderers = {
 var coreTypes = Object.keys(defaultRenderers);
 
 function getCoreProps(props) {
-    return {
-        'key': props.nodeKey,
-        'className': props.className,
-        'data-sourcepos': props['data-sourcepos']
+    var propKeys = Object.keys(props);
+
+    var dataPropKeys = propKeys.filter(function(propKey) {
+        return propKey.match(/data-.*/g);
+    });
+
+    var base = {
+        key: props.nodeKey,
+        className: props.className
     };
+
+    var dataAttributes = dataPropKeys.reduce(function(prev, dataPropKey) {
+        var attributes = {};
+        attributes[dataPropKey] = props[dataPropKey];
+
+        return assign(attributes, prev);
+    }, {});
+
+    return assign(dataAttributes, base);
 }
 
 function normalizeTypeName(typeName) {

@@ -522,6 +522,28 @@ describe('react-markdown', function() {
         });
     });
 
+    describe('should allow data attributes to be passed', function() {
+        function addDataId(result) {
+            return React.cloneElement(result[0], {'data-id': 'test'});
+        }
+
+        it('lists', function() {
+            expect(parse('3. Foo\n4. Bar', {}, addDataId))
+                .to.contain('<ol data-id="test" start="3">');
+        });
+
+        it('codeblocks', function() {
+            expect(parse('```js\nvar foo = bar;\n```', {}, addDataId))
+                .to.contain('<pre data-id="test">');
+        });
+
+        it('headings', function() {
+            expect(parse('# Foo', {}, addDataId)).to.contain('<h1 data-id="test">');
+            expect(parse('## Foo', {}, addDataId)).to.contain('<h2 data-id="test">');
+            expect(parse('### Foo', {}, addDataId)).to.contain('<h3 data-id="test">');
+        });
+    });
+
     describe('should only pass necessary props onto plain dom element renderers', function() {
         it('should pass only children onto blockquote', function() {
             expect(parse('> Foo\n> Bar\n> Baz\n')).to.contain('<blockquote><p>Foo');
@@ -629,12 +651,13 @@ function getFakeWalker() {
     };
 }
 
-function parse(markdown, opts) {
+function parse(markdown, opts, modifyResult) {
     var ast = parser.parse(markdown);
     var result = getRenderer(opts).render(ast);
+    var maybeModifiedResult = modifyResult ? modifyResult(result) : result;
 
     var html = renderHtml.renderToStaticMarkup(
-        React.createElement.apply(React, ['div', null].concat(result))
+        React.createElement.apply(React, ['div', null].concat(maybeModifiedResult))
     );
 
     return html.substring('<div>'.length, html.length - '</div>'.length);
