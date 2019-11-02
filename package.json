@@ -26,7 +26,7 @@
   "devDependencies": {
     "chai": "^3.4.0",
     "commonmark": "^0.27.0",
-    "eslint": "^1.7.3",
+    "eslint": "^6.6.0",
     "eslint-config-vaffel": "^3.0.0",
     "eslint-plugin-react": "^3.6.3",
     "istanbul": "^0.4.5",
