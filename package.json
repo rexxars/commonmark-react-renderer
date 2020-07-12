@@ -36,7 +36,7 @@
   },
   "peerDependencies": {
     "react": ">=0.14.0",
-    "commonmark": "^0.27.0 || ^0.26.0 || ^0.24.0"
+    "commonmark": ">=0.24.0 <0.30.0"
   },
   "dependencies": {
     "lodash.assign": "^4.2.0",
