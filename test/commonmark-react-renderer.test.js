@@ -410,7 +410,7 @@ describe('react-markdown', function() {
         }).replace(/&quot;/g, '"')).to.equal([
             '<div class="level-1">Header</div><hr/><p>Paragraph a day...</p>',
             '<pre>{"language":"js","codeinfo":["js"],"literal":',
-            '"var keepTheDoctor = \\"away\\";\\n","nodeKey":"4:1-6:27"}</pre>',
+            '"var keepTheDoctor = \\"away\\";\\n","nodeKey":"4:1-6:3"}</pre>',
             '<blockquote><p>Foo</p></blockquote>'
         ].join(''));
     });
@@ -512,7 +512,7 @@ describe('react-markdown', function() {
 
         it('codeblocks', function() {
             expect(parse('```js\nvar foo = bar;\n```', {sourcePos: true}))
-                .to.contain('<pre data-sourcepos="1:1-3:14">');
+                .to.contain('<pre data-sourcepos="1:1-3:3">');
         });
 
         it('headings', function() {
